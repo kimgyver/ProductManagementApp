@@ -1,0 +1,82 @@
+# Ignore Visual Studio specific files
+.vs/
+*.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sln.ide
+*.sln.iml
+
+# Ignore build and bin/obj directories
+bin/
+obj/
+out/
+
+# Ignore NuGet packages
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+global.json
+.nuget/
+
+# Ignore temporary files
+*.log
+*.tlog
+*.tmp
+*.temp
+*.cache
+*.pdb
+
+# Ignore compiled DLL and EXE files
+*.dll
+*.exe
+*.so
+*.dylib
+
+# Ignore Entity Framework migrations
+Migrations/
+
+# Ignore user secrets (if using)
+secrets.json
+*.secrets/
+
+# Ignore Rider/JetBrains IDE files
+.idea/
+*.sln.iml
+
+# Ignore test result files
+TestResults/
+
+# Ignore Docker-related files
+docker-compose.override.yml
+**/docker-compose*.yml
+!docker-compose.override.example.yml
+
+# Ignore MacOS system files
+.DS_Store
+
+# Ignore Node.js dependencies (if using React frontend in same repo)
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore SQLite database files (if using SQLite)
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# Ignore coverage files
+coverage/
+*.coverage
+*.coveragexml
+
+# Ignore JetBrains Rider settings
+.idea/
+
+# Ignore any other generated files
+*.bak
