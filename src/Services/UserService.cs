@@ -27,10 +27,10 @@ public class UserService : IUserService
     await _userRepository.AddAsync(user);
   }
 
-  public async Task<object?> AuthenticateUserAsync(string email, string password)
+  public async Task<object?> AuthenticateUserAsync(UserLoginDto loginDto)
   {
-    var user = (await GetAllUsersAsync()).FirstOrDefault(u => u.Email == email);
-    if (user == null || !_passwordHasherService.VerifyPassword(password, user.HashedPassword))
+    var user = (await GetAllUsersAsync()).FirstOrDefault(u => u.Email == loginDto.Email);
+    if (user == null || !_passwordHasherService.VerifyPassword(loginDto.Password, user.HashedPassword))
     {
       return null; // Invalid credentials
     }

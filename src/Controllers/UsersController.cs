@@ -39,9 +39,9 @@ public class UsersController : ControllerBase
   }
 
   [HttpPost("login")]
-  public async Task<IActionResult> Login([FromBody] User user)
+  public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
   {
-    var result = await _userService.AuthenticateUserAsync(user.Email, user.HashedPassword);
+    var result = await _userService.AuthenticateUserAsync(loginDto);
     if (result == null)
     {
       return Unauthorized("Invalid credentials.");
