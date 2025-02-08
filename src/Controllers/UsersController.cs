@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 public class UsersController : ControllerBase
 {
   private readonly UserService _userService;
+  private readonly SessionService _sessionService;
 
-  public UsersController(UserService userService)
+  public UsersController(UserService userService, SessionService sessionService)
   {
     _userService = userService;
+    _sessionService = sessionService;
   }
 
   [HttpGet]
@@ -47,5 +49,12 @@ public class UsersController : ControllerBase
       return Unauthorized("Invalid credentials.");
     }
     return Ok(result);
+  }
+
+  [HttpPost("logout")]
+  public async Task<IActionResult> Logout()
+  {
+    await _sessionService.RemoveSessionAsync();
+    return Ok("Successfully logged out.");
   }
 }

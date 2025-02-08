@@ -1,18 +1,21 @@
 
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 public class UserService : IUserService
 {
   private readonly UserRepository _userRepository;
   private readonly IPasswordHasherService _passwordHasherService;
   private readonly JwtService _jwtService;
+  private readonly SessionService _sessionService;
 
-  public UserService(UserRepository userRepository, IPasswordHasherService passwordHasherService, JwtService jwtService)
+  public UserService(UserRepository userRepository, IPasswordHasherService passwordHasherService, JwtService jwtService, SessionService sessionService)
   {
     _userRepository = userRepository;
     _passwordHasherService = passwordHasherService;
     _jwtService = jwtService;
+    _sessionService = sessionService;
   }
 
   public async Task<IEnumerable<User>> GetAllUsersAsync()
@@ -35,6 +38,9 @@ public class UserService : IUserService
       return null; // Invalid credentials
     }
     var token = _jwtService.GenerateToken(user.Username, user.IsAdmin);
+
+    _sessionService.GenerateSessionAsync(user.Username, user.IsAdmin);
+
     return new { Token = token, Message = "Login is successful", User = user };
   }
 

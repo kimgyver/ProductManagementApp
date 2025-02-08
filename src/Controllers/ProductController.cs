@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,8 +16,12 @@ public class ProductsController : ControllerBase
   }
 
   [HttpGet]
+  [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme + "," + CookieAuthenticationDefaults.AuthenticationScheme)]
   public async Task<IActionResult> GetAllProducts()
   {
+    var Username = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    var isAdmin = HttpContext.User.IsInRole("Admin");
+
     var products = await _productService.GetAllProductsAsync();
     return Ok(products);
   }
@@ -30,7 +36,7 @@ public class ProductsController : ControllerBase
     return Ok(product);
   }
 
-  [Authorize] // Only logged-in users can add/update/delete
+  [Authorize]
   [HttpPost]
   public async Task<IActionResult> AddProduct([FromBody] Product product)
   {
