@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-  private readonly UserService _userService;
-  private readonly SessionService _sessionService;
+  private readonly IUserService _userService;
+  private readonly ISessionService _sessionService;
 
-  public UsersController(UserService userService, SessionService sessionService)
+  public UsersController(IUserService userService, ISessionService sessionService)
   {
     _userService = userService;
     _sessionService = sessionService;

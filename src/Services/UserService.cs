@@ -5,12 +5,12 @@ using Microsoft.AspNetCore.Http;
 
 public class UserService : IUserService
 {
-  private readonly UserRepository _userRepository;
+  private readonly IUserRepository _userRepository;
   private readonly IPasswordHasherService _passwordHasherService;
-  private readonly JwtService _jwtService;
-  private readonly SessionService _sessionService;
+  private readonly IJwtService _jwtService;
+  private readonly ISessionService _sessionService;
 
-  public UserService(UserRepository userRepository, IPasswordHasherService passwordHasherService, JwtService jwtService, SessionService sessionService)
+  public UserService(IUserRepository userRepository, IPasswordHasherService passwordHasherService, IJwtService jwtService, ISessionService sessionService)
   {
     _userRepository = userRepository;
     _passwordHasherService = passwordHasherService;
