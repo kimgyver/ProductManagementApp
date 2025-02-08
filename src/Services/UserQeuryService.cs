@@ -1,16 +1,12 @@
 
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-
-public class UserService : IUserService
+public class UserQueryService : IUserQueryService
 {
   private readonly IUserRepository _userRepository;
   private readonly IPasswordHasherService _passwordHasherService;
   private readonly IJwtService _jwtService;
   private readonly ISessionService _sessionService;
 
-  public UserService(IUserRepository userRepository, IPasswordHasherService passwordHasherService, IJwtService jwtService, ISessionService sessionService)
+  public UserQueryService(IUserRepository userRepository, IPasswordHasherService passwordHasherService, IJwtService jwtService, ISessionService sessionService)
   {
     _userRepository = userRepository;
     _passwordHasherService = passwordHasherService;
@@ -21,13 +17,6 @@ public class UserService : IUserService
   public async Task<IEnumerable<User>> GetAllUsersAsync()
   {
     return await _userRepository.GetAllUsersAsync();
-  }
-
-  public async Task RegisterAsync(User user)
-  {
-    // Hash the password before storing it
-    user.HashedPassword = _passwordHasherService.HashPassword(user.HashedPassword);
-    await _userRepository.AddAsync(user);
   }
 
   public async Task<object?> AuthenticateUserAsync(UserLoginDto loginDto)
@@ -42,15 +31,5 @@ public class UserService : IUserService
     _sessionService.GenerateSessionAsync(user.Username, user.IsAdmin);
 
     return new { Token = token, Message = "Login is successful", User = user };
-  }
-
-  public async Task RemoveUserAsync(int id)
-  {
-    await _userRepository.RemoveUserAsync(id);
-  }
-
-  public async Task UpdateUserAsync(User user)
-  {
-    await _userRepository.UpdateUserAsync(user);
   }
 }

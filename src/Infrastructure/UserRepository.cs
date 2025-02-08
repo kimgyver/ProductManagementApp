@@ -31,14 +31,15 @@ public class UserRepository : IUserRepository
     }
   }
 
-  public async Task UpdateUserAsync(User user)
+  public async Task<User?> UpdateUserAsync(User user)
   {
     var userFound = await _context.Users.FindAsync(user.Id);
-    if (userFound != null)
-    {
-      userFound.Username = user.Username;
-      userFound.Email = user.Email;
-      await _context.SaveChangesAsync();
-    }
+    if (userFound == null)
+      return null;
+
+    userFound.Username = user.Username;
+    userFound.Email = user.Email;
+    await _context.SaveChangesAsync();
+    return userFound;
   }
 }

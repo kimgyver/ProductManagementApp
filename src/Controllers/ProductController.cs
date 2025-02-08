@@ -8,11 +8,13 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-  private readonly IProductService _productService;
+  private readonly IProductCommandService _productCommandService;
+  private readonly IProductQueryService _productQueryService;
 
-  public ProductsController(IProductService productService)
+  public ProductsController(IProductCommandService productCommandService, IProductQueryService productQueryService)
   {
-    _productService = productService;
+    _productCommandService = productCommandService;
+    _productQueryService = productQueryService;
   }
 
   [HttpGet]
@@ -22,14 +24,14 @@ public class ProductsController : ControllerBase
     var Username = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
     var isAdmin = HttpContext.User.IsInRole("Admin");
 
-    var products = await _productService.GetAllProductsAsync();
+    var products = await _productQueryService.GetAllProductsAsync();
     return Ok(products);
   }
 
   [HttpGet("{id}")]
   public async Task<IActionResult> GetProductById(int id)
   {
-    var product = await _productService.GetProductByIdAsync(id);
+    var product = await _productQueryService.GetProductByIdAsync(id);
     if (product == null)
       return NotFound();
 
@@ -42,7 +44,7 @@ public class ProductsController : ControllerBase
   {
     bool isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
 
-    var success = await _productService.AddProductAsync(product, isAdmin);
+    var success = await _productCommandService.AddProductAsync(product, isAdmin);
     if (!success)
       return Forbid("Only admins can add products.");
 
@@ -55,7 +57,7 @@ public class ProductsController : ControllerBase
   {
     bool isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
 
-    var success = await _productService.UpdateProductAsync(product, isAdmin);
+    var success = await _productCommandService.UpdateProductAsync(product, isAdmin);
     if (!success)
       return Forbid("Only admins can update products.");
 
@@ -68,7 +70,7 @@ public class ProductsController : ControllerBase
   {
     bool isAdmin = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
 
-    var success = await _productService.DeleteProductAsync(id, isAdmin);
+    var success = await _productCommandService.DeleteProductAsync(id, isAdmin);
     if (!success)
       return Forbid("Only admins can delete products.");
 

@@ -26,5 +26,9 @@ public class ApplicationDbContext : DbContext
             .Property(p => p.Username)
             .IsRequired()
             .HasMaxLength(100);
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
     }
 }

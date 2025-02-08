@@ -14,8 +14,10 @@ public static class ServiceExtensions
     services.AddScoped<IPasswordHasherService, PasswordHasherService>();
     services.AddScoped<IUserRepository, UserRepository>();
     services.AddScoped<IProductRepository, ProductRepository>();
-    services.AddScoped<IUserService, UserService>();
-    services.AddScoped<IProductService, ProductService>();
+    services.AddScoped<IUserCommandService, UserCommandService>();
+    services.AddScoped<IUserQueryService, UserQueryService>();
+    services.AddScoped<IProductCommandService, ProductCommandService>();
+    services.AddScoped<IProductQueryService, ProductQueryService>();
     services.AddScoped<IJwtService, JwtService>();
     services.AddScoped<ISessionService, SessionService>();
 
