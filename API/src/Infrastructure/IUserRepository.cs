@@ -4,4 +4,5 @@ public interface IUserRepository
   public Task AddAsync(User user);
   public Task RemoveUserAsync(int id);
   public Task<User?> UpdateUserAsync(User user);
+  Task MarkUserUnverifiedAsync(string email);
 }

@@ -35,7 +35,8 @@ public class UserCommandService : IUserCommandService
     {
       Email = userDto.Email,
       Username = userDto.Username,
-      HashedPassword = hashedPassword
+      HashedPassword = hashedPassword,
+      Verified = true
     };
 
     // Save user to database
@@ -60,7 +61,6 @@ public class UserCommandService : IUserCommandService
 
     var response = await _sqsClient.SendMessageAsync(sendMessageRequest);
     Console.WriteLine($"Message sent! ID: {response.MessageId}, MD5: {response.MD5OfMessageBody}");
-
   }
 
   public async Task RemoveUserAsync(int id)
@@ -71,5 +71,10 @@ public class UserCommandService : IUserCommandService
   public async Task<User?> UpdateUserAsync(User user)
   {
     return await _userRepository.UpdateUserAsync(user);
+  }
+
+  public async Task MarkUserUnverified(string email)
+  {
+    await _userRepository.MarkUserUnverifiedAsync(email);
   }
 }

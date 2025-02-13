@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "API\API.csproj", "{8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API.Test", "API.Test\API.Test.csproj", "{C20DC28D-533D-4414-B0C4-CEB899346A33}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailFailureProcessor", "EmailFailureProcessor\EmailFailureProcessor.csproj", "{F27E9ED5-6A0D-4EC3-9606-9F8DDD003BED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{C20DC28D-533D-4414-B0C4-CEB899346A33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C20DC28D-533D-4414-B0C4-CEB899346A33}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C20DC28D-533D-4414-B0C4-CEB899346A33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F27E9ED5-6A0D-4EC3-9606-9F8DDD003BED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F27E9ED5-6A0D-4EC3-9606-9F8DDD003BED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F27E9ED5-6A0D-4EC3-9606-9F8DDD003BED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F27E9ED5-6A0D-4EC3-9606-9F8DDD003BED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

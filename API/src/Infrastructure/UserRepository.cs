@@ -42,4 +42,13 @@ public class UserRepository : IUserRepository
     await _context.SaveChangesAsync();
     return userFound;
   }
+
+  public async Task MarkUserUnverifiedAsync(string email)
+  {
+    var user = await _context.Users.FirstOrDefaultAsync(user => user.Email == email);
+    if (user == null) return;
+
+    user.Verified = false;
+    await _context.SaveChangesAsync();
+  }
 }

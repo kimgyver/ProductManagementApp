@@ -17,4 +17,6 @@ public class User
   public string HashedPassword { get; set; }
 
   public bool IsAdmin { get; set; }
+
+  public bool Verified { get; set; }
 }
