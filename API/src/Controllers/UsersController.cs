@@ -22,9 +22,9 @@ public class UsersController : ControllerBase
   }
 
   [HttpPost]
-  public async Task<IActionResult> Register([FromBody] User user)
+  public async Task<IActionResult> Add([FromBody] User user)
   {
-    await _userCommandService.RegisterAsync(user);
+    await _userCommandService.AddUserAsync(user);
     return Ok("User registered successfully.");
   }
 
@@ -59,5 +59,17 @@ public class UsersController : ControllerBase
   {
     await _sessionService.RemoveSessionAsync();
     return Ok("Successfully logged out.");
+  }
+
+  [HttpPost("register")]
+  public async Task<IActionResult> Register([FromBody] UserRegistrationDto userDto)
+  {
+    if (!ModelState.IsValid)
+    {
+      return BadRequest(ModelState);
+    }
+
+    await _userCommandService.RegisterUserAsync(userDto);
+    return Ok(new { message = "User registered successfully. Email will be sent shortly." });
   }
 }
