@@ -1,4 +1,4 @@
-# Projects
+# Projects in solution
 
 - API: WebAPI
 - EmailFailureProcessor: Background Worker

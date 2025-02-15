@@ -61,7 +61,8 @@ async function deleteSQSMessage(receiptHandle) {
   const sqsClient = new SQSClient({ region: "ap-southeast-2" });
 
   const deleteCommand = new DeleteMessageCommand({
-    QueueUrl: "https://sqs.ap-southeast-2.amazonaws.com/840297437975/myNewSQS",
+    QueueUrl:
+      "https://sqs.ap-southeast-2.amazonaws.com/840297437975/SendEmailQueue",
     ReceiptHandle: receiptHandle
   });
 
