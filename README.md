@@ -1,8 +1,8 @@
 # Projects in solution
 
-- API: WebAPI
-- EmailFailureProcessor: Background Worker
-- API.Test: Unit test (xUnit)
+- API: WebAPI project
+- EmailFailureProcessor: Background Worker project
+- API.Test: Unit test (xUnit) project
 
 # Used AWS Resources
 
