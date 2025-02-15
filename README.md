@@ -1,4 +1,16 @@
-# Entities
+# Projects
+
+- API: WebAPI
+- EmailFailureProcessor: Background Worker
+- API.Test: Unit test (xUnit)
+
+# Used AWS Resources
+
+- Lambda function: LambdaEmailSender.js (Node js)
+- SQS: SendEmailQueue, EmailFailureQueue
+- SES
+
+# Database Entities
 
 - **User**
 - **Product**
@@ -24,8 +36,8 @@
 - **WebAPI** sends a message to **SQS (SendEmailQueue)**
 - **SQS (SendEmailQueue)** triggers **lambda (LambdaEmailSender)**
 - **Lambda (LambdaEmailSender)** sends a welcome email to the new user via **SES**
-- If email sending fails, **Lambda (LambdaEmailSender)** sends a failure message to **SQS (EmailFaiureQueue)**
-- A **Background Worker** checks **SQS (EmailFaiureQueue)**
+- If email sending fails, **Lambda (LambdaEmailSender)** sends a failure message to **SQS (EmailFailureQueue)**
+- A **Background Worker** checks **SQS (EmailFailureQueue)**
   if there is a message, call a **WebAPI** to update the Verified flag in "Users" table to false.
 
 # Technologies
