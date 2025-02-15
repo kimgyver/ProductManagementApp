@@ -30,18 +30,23 @@ public class UserRepository : IUserRepository
   public async Task RemoveUserAsync(int id)
   {
     var user = await _context.Users.FindAsync(id);
-    if (user != null)
+    if (user == null)
     {
-      _context.Users.Remove(user);
-      await _context.SaveChangesAsync();
+      throw new UserNotFoundException($"User with Id {id} not found");
     }
+
+    _context.Users.Remove(user);
+    await _context.SaveChangesAsync();
+
   }
 
   public async Task<User?> UpdateUserAsync(User user)
   {
     var userFound = await _context.Users.FindAsync(user.Id);
     if (userFound == null)
-      return null;
+    {
+      throw new UserNotFoundException($"User with Id {user.Id} not found");
+    }
 
     userFound.Username = user.Username;
     userFound.Email = user.Email;

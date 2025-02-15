@@ -22,14 +22,7 @@ public class UserCommandService : IUserCommandService
   {
     // Hash the password before storing it
     user.HashedPassword = _passwordHasherService.HashPassword(user.HashedPassword);
-    try
-    {
-      await _userRepository.AddAsync(user);
-    }
-    catch (DuplicateEmailException)
-    {
-      throw new ApplicationException("This email is already in use, Please try a different email.");
-    }
+    await _userRepository.AddAsync(user);
   }
 
   public async Task RegisterUserAsync(UserRegistrationDto userDto)
@@ -47,14 +40,7 @@ public class UserCommandService : IUserCommandService
     };
 
     // Save user to database
-    try
-    {
-      await _userRepository.AddAsync(user);
-    }
-    catch (DuplicateEmailException)
-    {
-      throw new ApplicationException("This email is already in use, Please try a different email.");
-    }
+    await _userRepository.AddAsync(user);
 
     // Send message to SQS for email notification
     var message = new

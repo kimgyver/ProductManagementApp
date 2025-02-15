@@ -76,14 +76,7 @@ public class UsersController : ControllerBase
       return BadRequest(ModelState);
     }
 
-    try
-    {
-      await _userCommandService.RegisterUserAsync(userDto);
-    }
-    catch (ApplicationException ex)
-    {
-      return StatusCode(400, new { error = ex.Message });
-    }
+    await _userCommandService.RegisterUserAsync(userDto);
     return Ok(new { message = "User registered successfully. Email will be sent shortly." });
   }
 }
