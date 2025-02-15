@@ -24,7 +24,14 @@ public class UsersController : ControllerBase
   [HttpPost]
   public async Task<IActionResult> Add([FromBody] User user)
   {
-    await _userCommandService.AddUserAsync(user);
+    try
+    {
+      await _userCommandService.AddUserAsync(user);
+    }
+    catch (ApplicationException ex)
+    {
+      return StatusCode(400, new { error = ex.Message });
+    }
     return Ok("User registered successfully.");
   }
 
@@ -69,7 +76,14 @@ public class UsersController : ControllerBase
       return BadRequest(ModelState);
     }
 
-    await _userCommandService.RegisterUserAsync(userDto);
+    try
+    {
+      await _userCommandService.RegisterUserAsync(userDto);
+    }
+    catch (ApplicationException ex)
+    {
+      return StatusCode(400, new { error = ex.Message });
+    }
     return Ok(new { message = "User registered successfully. Email will be sent shortly." });
   }
 }

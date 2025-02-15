@@ -1,4 +1,3 @@
-
 using Microsoft.EntityFrameworkCore;
 
 public class UserRepository : IUserRepository
@@ -12,8 +11,15 @@ public class UserRepository : IUserRepository
 
   public async Task AddAsync(User user)
   {
-    await _context.Users.AddAsync(user);
-    await _context.SaveChangesAsync();
+    try
+    {
+      await _context.Users.AddAsync(user);
+      await _context.SaveChangesAsync();
+    }
+    catch (Exception ex) when (ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
+    {
+      throw new DuplicateEmailException($"Email `{user.Email} is already registered.`", ex);
+    }
   }
 
   public async Task<IEnumerable<User>> GetAllUsersAsync()
