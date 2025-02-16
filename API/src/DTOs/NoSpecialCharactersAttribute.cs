@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
+namespace API.DTOs;
+
 public class NoSpecialCharactersAttribute : ValidationAttribute
 {
     protected override ValidationResult IsValid(object value, ValidationContext validationContext)

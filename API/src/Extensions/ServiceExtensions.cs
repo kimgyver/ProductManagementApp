@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Text;
+using API.Services;
+using API.Infrastructure;
+
+namespace API.Extensions;
 
 public static class ServiceExtensions
 {

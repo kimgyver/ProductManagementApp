@@ -1,3 +1,5 @@
+namespace EmailFailureProcessor.Models;
+
 public class EmailStatus
 {
   public string Email { get; set; }

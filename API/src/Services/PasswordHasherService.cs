@@ -1,3 +1,5 @@
+namespace API.Services;
+
 public class PasswordHasherService : IPasswordHasherService
 {
   public PasswordHasherService()

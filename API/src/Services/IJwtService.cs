@@ -1,3 +1,4 @@
+namespace API.Services;
 
 public interface IJwtService
 {

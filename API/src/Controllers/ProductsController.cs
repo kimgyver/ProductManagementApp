@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using API.Services;
+using API.Models;
+
+namespace API.Controller;
 
 [ApiController]
 [Route("api/[controller]")]

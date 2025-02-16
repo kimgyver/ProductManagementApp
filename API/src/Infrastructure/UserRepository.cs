@@ -1,4 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using API.Models;
+using API.Exceptions;
+
+namespace API.Infrastructure;
 
 public class UserRepository : IUserRepository
 {

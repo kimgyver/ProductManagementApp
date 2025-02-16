@@ -1,6 +1,11 @@
 using System.Text.Json;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using API.Infrastructure;
+using API.Models;
+using API.DTOs;
+
+namespace API.Services;
 
 public class UserCommandService : IUserCommandService
 {

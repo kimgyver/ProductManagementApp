@@ -4,6 +4,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
+namespace API.Services;
+
 public class JwtService : IJwtService
 {
   private readonly IConfiguration _configuration;

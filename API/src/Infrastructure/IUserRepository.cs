@@ -1,3 +1,7 @@
+using API.Models;
+
+namespace API.Infrastructure;
+
 public interface IUserRepository
 {
   public Task<IEnumerable<User>> GetAllUsersAsync();

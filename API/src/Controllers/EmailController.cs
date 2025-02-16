@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using API.Services;
+
+namespace API.Controller;
 
 [ApiController]
 [Route("api/email")]

@@ -1,3 +1,6 @@
+namespace API.Infrastructure;
+using API.Models;
+
 public interface IProductRepository
 {
   Task<IEnumerable<Product>> GetAllProductsAsync();

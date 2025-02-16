@@ -1,3 +1,8 @@
+using API.Infrastructure;
+using API.Models;
+
+namespace API.Services;
+
 public class ProductQueryService : IProductQueryService
 {
   private readonly IProductRepository _productRepository;

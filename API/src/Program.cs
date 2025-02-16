@@ -1,5 +1,7 @@
 using Amazon.SQS;
 using Amazon.Extensions.NETCore.Setup;
+using API.Extensions;
+using API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 

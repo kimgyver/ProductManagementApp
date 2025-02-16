@@ -1,3 +1,8 @@
+using API.Infrastructure;
+using API.Models;
+using API.DTOs;
+
+namespace API.Services;
 
 public class UserQueryService : IUserQueryService
 {

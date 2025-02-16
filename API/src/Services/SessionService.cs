@@ -2,6 +2,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 
+namespace API.Services;
+
 public class SessionService : ISessionService
 {
   private readonly IHttpContextAccessor _httpContextAccessor;

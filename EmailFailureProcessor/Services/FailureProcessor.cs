@@ -8,17 +8,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text;
+using EmailFailureProcessor.Models;
 
-public class EmailFailureProcessor : BackgroundService
+namespace EmailFailureProcessor.Services;
+
+public class FailureProcessor : BackgroundService
 {
     private readonly IAmazonSQS _sqsClient;
-    private readonly ILogger<EmailFailureProcessor> _logger;
+    private readonly ILogger<FailureProcessor> _logger;
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly string _queueUrl;
     private readonly string _apiBaseUrl;
 
-    public EmailFailureProcessor(IAmazonSQS sqsClient, ILogger<EmailFailureProcessor> logger,
+    public FailureProcessor(IAmazonSQS sqsClient, ILogger<FailureProcessor> logger,
             IConfiguration configuration, HttpClient httpClient)
     {
         _sqsClient = sqsClient;

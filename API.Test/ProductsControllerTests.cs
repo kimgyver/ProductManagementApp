@@ -3,6 +3,11 @@ using Xunit;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using API.Controller;
+using API.Services;
+using API.Models;
+
+namespace API.Test;
 
 public class ProductsControllerTests
 {

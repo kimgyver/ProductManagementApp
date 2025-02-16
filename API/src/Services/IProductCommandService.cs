@@ -1,3 +1,7 @@
+using API.Models;
+
+namespace API.Services;
+
 public interface IProductCommandService
 {
   Task<bool> AddProductAsync(Product product, bool isAdmin);
