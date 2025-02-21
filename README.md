@@ -33,12 +33,13 @@
 # User Registration flow
 
 - **WebAPI** Inserts user information into "Users" table
-- **WebAPI** sends a message to **SQS (SendEmailQueue)**
+- **WebAPI** sends a message (with email information) to **SQS (SendEmailQueue)**
 - ~~**SQS (SendEmailQueue)** triggers **lambda (LambdaEmailSender)**~~
-- **Background Worker (EmailBackgroundWorker)** sends a welcome email to the new user via **SES**
-- If email sending fails, **Background Worker (EmailBackgroundWorker)** sends a failure message to **SQS (EmailFailureQueue)**
-- A **Background Worker (EmailFailureBackgroundWorker)** checks **SQS (EmailFailureQueue)**
-  if there is a message, call a **WebAPI** to update the Verified flag in "Users" table to false.
+- A **Background Worker (EmailBackgroundWorker)** checks (or receives messages) **SQS (SendEmailQueue)**
+- If there is a message, the worker sends a welcome email to the new user via **SES**
+- If email sending fails, the worker sends a message (with email failure notification) to **SQS (EmailFailureQueue)**
+- A **Background Worker (EmailFailureBackgroundWorker)** checks (or receives messages) **SQS (EmailFailureQueue)**
+- If there is a message, the worker calls a **WebAPI** to update the Verified flag in "Users" table to false.
 
 # Technologies
 
