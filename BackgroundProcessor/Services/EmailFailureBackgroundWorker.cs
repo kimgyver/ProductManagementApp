@@ -20,6 +20,9 @@ public class EmailFailureBackgroundWorker : BackgroundService
     private readonly IConfiguration _configuration;
     private readonly string _emailFailureQueueUrl;
     private readonly string _apiBaseUrl;
+    private readonly int _longInterval;
+    private readonly int _shortInterval;
+
 
     public EmailFailureBackgroundWorker(IAmazonSQS sqsClient, ILogger<EmailFailureBackgroundWorker> logger,
             IConfiguration configuration, HttpClient httpClient)
@@ -31,13 +34,14 @@ public class EmailFailureBackgroundWorker : BackgroundService
 
         _emailFailureQueueUrl = _configuration["SQS:EmailFailureQueueUrl"] ?? throw new ArgumentNullException("SQS EmailFailureQueueUrl is missing in config.");
         _apiBaseUrl = _configuration["WebApi:BaseUrl"] ?? throw new ArgumentNullException("Web API base URL is missing in config.");
+        _longInterval = _configuration.GetValue<int>("WorkerInterval:FailureProcessor:Long");   // Start with 30 seconds delay when no messages
+        _shortInterval = _configuration.GetValue<int>("WorkerInterval:FailureProcessor:Short"); // Reduce delay if messages are being processed
+        if (_longInterval == 0) throw new ArgumentNullException("WorkerInterval:FailureProcessor:Long is missing config");
+        if (_shortInterval == 0) throw new ArgumentNullException("WorkerInterval:FailureProcessor:Short is missing config");
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        int noMessageDelay = 30; // Start with 30 seconds delay when no messages
-        int shortDelay = 5; // Reduce delay if messages are being processed
-
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -59,12 +63,12 @@ public class EmailFailureBackgroundWorker : BackgroundService
                     }
 
                     // If messages were found, set short delay (e.g., 5 seconds)
-                    await Task.Delay(TimeSpan.FromSeconds(shortDelay), stoppingToken);
+                    await Task.Delay(_shortInterval, stoppingToken);
                 }
                 else
                 {
                     // If no messages, increase delay to 30 seconds to reduce polling cost
-                    await Task.Delay(TimeSpan.FromSeconds(noMessageDelay), stoppingToken);
+                    await Task.Delay(_longInterval, stoppingToken);
                 }
             }
             catch (Exception ex)

@@ -21,6 +21,7 @@ public class EmailBackgroundWorker : BackgroundService
     private readonly string _sendEmailQueueUrl;
     private readonly string _sourceEmailAddress;
     private readonly string _emailFailureQueueUrl;
+    private readonly int _workerInterval;
 
     public EmailBackgroundWorker(IAmazonSQS sqsClient, IAmazonSimpleEmailService sesClient, ILogger<EmailBackgroundWorker> logger,
             IConfiguration configuration)
@@ -33,6 +34,8 @@ public class EmailBackgroundWorker : BackgroundService
         _sendEmailQueueUrl = _configuration["SQS:SendEmailQueueUrl"] ?? throw new ArgumentNullException("SQS SendEmailQueueUrl is missing in config.");
         _sourceEmailAddress = _configuration["SES:SourceEmailAddress"] ?? throw new ArgumentNullException("SES SourceEmailAddress is missing in config.");
         _emailFailureQueueUrl = _configuration["SQS:EmailFailureQueueUrl"] ?? throw new ArgumentNullException("SQS EmailFailureQueueUrl is missing in config.");
+        _workerInterval = _configuration.GetValue<int>("WorkerInterval:EmailSender");
+        if (_workerInterval == 0) throw new ArgumentNullException("WorkerInterval:EmailSender is missing config");
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -47,7 +50,7 @@ public class EmailBackgroundWorker : BackgroundService
                 {
                     QueueUrl = _sendEmailQueueUrl,
                     MaxNumberOfMessages = 10,
-                    WaitTimeSeconds = 10,
+                    WaitTimeSeconds = 20,
                     VisibilityTimeout = 30 // Allow retry if processing fails
                 };
 
@@ -60,10 +63,10 @@ public class EmailBackgroundWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error polling SQS for messages.");
+                _logger.LogError(ex, "Error polling SQS for messages.");
             }
 
-            await Task.Delay(5000, stoppingToken); // Delay before next poll
+            await Task.Delay(_workerInterval, stoppingToken); // Delay before next poll
         }
 
         _logger.LogInformation("Email Background Worker stopped.");
@@ -76,7 +79,7 @@ public class EmailBackgroundWorker : BackgroundService
             var messageBody = JsonSerializer.Deserialize<EmailMessage>(message.Body);
             if (messageBody == null)
             {
-                _logger.LogWarning("❌ Received invalid message format.");
+                _logger.LogWarning("Received invalid message format.");
                 return;
             }
 
@@ -92,15 +95,15 @@ public class EmailBackgroundWorker : BackgroundService
             };
 
             await _sesClient.SendEmailAsync(sendRequest, stoppingToken);
-            _logger.LogInformation($"✅ Email sent to {messageBody.Email}");
+            _logger.LogInformation($"Email sent to {messageBody.Email}");
 
             // Delete processed message from SQS
             await _sqsClient.DeleteMessageAsync(_sendEmailQueueUrl, message.ReceiptHandle, stoppingToken);
-            _logger.LogInformation("🚀 Message deleted from SQS.");
+            _logger.LogInformation("Message deleted from SQS.");
         }
         catch (MessageRejectedException ex)
         {
-            _logger.LogError($"❌ Error sending email to {message.Body}: {ex.Message}");
+            _logger.LogError($"Error sending email to {message.Body}: {ex.Message}");
 
             var emailMessage = JsonSerializer.Deserialize<EmailMessage>(message.Body);
 
@@ -111,7 +114,7 @@ public class EmailBackgroundWorker : BackgroundService
                 MessageBody = JsonSerializer.Serialize(new { Email = emailMessage?.Email, Status = "Failed" })
             }, stoppingToken);
 
-            _logger.LogInformation($"✅ Message sent to EmailFailureQueue for {message.Body}.");
+            _logger.LogInformation($"Message sent to EmailFailureQueue for {message.Body}.");
 
             // Delete the original failed message from SendEmailQueue
             await _sqsClient.DeleteMessageAsync(_sendEmailQueueUrl, message.ReceiptHandle, stoppingToken);
@@ -120,7 +123,7 @@ public class EmailBackgroundWorker : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogError($"❌ Unexpected error: {ex.Message}");
+            _logger.LogError(ex, $"Unexpected error: {ex.Message}");
         }
     }
 }
