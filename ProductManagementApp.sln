@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "API\API.csproj", "{8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API.Test", "API.Test\API.Test.csproj", "{C20DC28D-533D-4414-B0C4-CEB899346A33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailFailureProcessor", "EmailFailureProcessor\EmailFailureProcessor.csproj", "{F27E9ED5-6A0D-4EC3-9606-9F8DDD003BED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundProcessor", "BackgroundProcessor\BackgroundProcessor.csproj", "{F27E9ED5-6A0D-4EC3-9606-9F8DDD003BED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

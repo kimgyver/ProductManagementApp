@@ -1,12 +1,12 @@
 # Projects in solution
 
 - API: WebAPI project
-- EmailFailureProcessor: Background Worker project
+- BackgroundProcessor: Background Worker project
 - API.Test: Unit test (xUnit) project
 
 # Used AWS Resources
 
-- Lambda function: LambdaEmailSender.js (Node js)
+- ~~Lambda function: LambdaEmailSender.js (Node js)~~ -> Converted to a background worker
 - SQS: SendEmailQueue, EmailFailureQueue
 - SES
 
@@ -20,7 +20,7 @@
 ### User
 
 - **CRUD Operations**: Create, Read, Update, Delete
-- **Register**: Create a new user record in Users table, Send a welcome email via SQS -> Lambda -> SES
+- **Register user**: Create a new user record in Users table, Send a welcome email via SQS -> ~~Lambda~~ Worker -> SES
 - **Password hashing**: Store user passwords securely using hashing
 - **Login**: Authenticate user & provide credentials (JWT & Session)
 - **Logout**: Remove (invalidate) session
@@ -34,10 +34,10 @@
 
 - **WebAPI** Inserts user information into "Users" table
 - **WebAPI** sends a message to **SQS (SendEmailQueue)**
-- **SQS (SendEmailQueue)** triggers **lambda (LambdaEmailSender)**
-- **Lambda (LambdaEmailSender)** sends a welcome email to the new user via **SES**
-- If email sending fails, **Lambda (LambdaEmailSender)** sends a failure message to **SQS (EmailFailureQueue)**
-- A **Background Worker** checks **SQS (EmailFailureQueue)**
+- ~~**SQS (SendEmailQueue)** triggers **lambda (LambdaEmailSender)**~~
+- **Background Worker (EmailBackgroundWorker)** sends a welcome email to the new user via **SES**
+- If email sending fails, **Background Worker (EmailBackgroundWorker)** sends a failure message to **SQS (EmailFailureQueue)**
+- A **Background Worker (EmailFailureBackgroundWorker)** checks **SQS (EmailFailureQueue)**
   if there is a message, call a **WebAPI** to update the Verified flag in "Users" table to false.
 
 # Technologies
@@ -49,5 +49,5 @@
 - CQRS (Command Query Responsibility Segregation)
 - Fluent API
 - Custom Exception Handling / Global Exception Handler
-- AWS SQS, SES, Lambda
+- AWS SQS, SES, ~~Lambda~~
 - xUnit for Unit testing

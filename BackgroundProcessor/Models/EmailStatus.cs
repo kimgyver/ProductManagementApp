@@ -1,4 +1,4 @@
-namespace EmailFailureProcessor.Models;
+namespace BackgroundProcessor.Models;
 
 public class EmailStatus
 {

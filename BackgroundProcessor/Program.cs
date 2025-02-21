@@ -3,7 +3,8 @@ using Amazon.Extensions.NETCore.Setup;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Net.Http;
-using EmailFailureProcessor.Services;
+using BackgroundProcessor.Services;
+using Amazon.SimpleEmail;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
@@ -13,9 +14,11 @@ var host = Host.CreateDefaultBuilder(args)
 
       // Register AWS SQS
       services.AddAWSService<IAmazonSQS>();
+      services.AddAWSService<IAmazonSimpleEmailService>();
 
-      // Register your worker service
-      services.AddHostedService<FailureProcessor>();
+      // Register both workers
+      services.AddHostedService<EmailBackgroundWorker>();
+      services.AddHostedService<EmailFailureBackgroundWorker>();
     })
     .Build();
 

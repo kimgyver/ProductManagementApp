@@ -8,20 +8,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text;
-using EmailFailureProcessor.Models;
+using BackgroundProcessor.Models;
 
-namespace EmailFailureProcessor.Services;
+namespace BackgroundProcessor.Services;
 
-public class FailureProcessor : BackgroundService
+public class EmailFailureBackgroundWorker : BackgroundService
 {
     private readonly IAmazonSQS _sqsClient;
-    private readonly ILogger<FailureProcessor> _logger;
+    private readonly ILogger<EmailFailureBackgroundWorker> _logger;
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
-    private readonly string _queueUrl;
+    private readonly string _emailFailureQueueUrl;
     private readonly string _apiBaseUrl;
 
-    public FailureProcessor(IAmazonSQS sqsClient, ILogger<FailureProcessor> logger,
+    public EmailFailureBackgroundWorker(IAmazonSQS sqsClient, ILogger<EmailFailureBackgroundWorker> logger,
             IConfiguration configuration, HttpClient httpClient)
     {
         _sqsClient = sqsClient;
@@ -29,7 +29,7 @@ public class FailureProcessor : BackgroundService
         _configuration = configuration;
         _httpClient = httpClient;
 
-        _queueUrl = _configuration["SQS:QueueUrl"] ?? throw new ArgumentNullException("SQS QueueUrl is missing in config.");
+        _emailFailureQueueUrl = _configuration["SQS:EmailFailureQueueUrl"] ?? throw new ArgumentNullException("SQS EmailFailureQueueUrl is missing in config.");
         _apiBaseUrl = _configuration["WebApi:BaseUrl"] ?? throw new ArgumentNullException("Web API base URL is missing in config.");
     }
 
@@ -44,7 +44,7 @@ public class FailureProcessor : BackgroundService
             {
                 var receiveRequest = new ReceiveMessageRequest
                 {
-                    QueueUrl = _queueUrl,
+                    QueueUrl = _emailFailureQueueUrl,
                     MaxNumberOfMessages = 10,
                     WaitTimeSeconds = 20 // Long polling (reduces empty responses)
                 };
@@ -101,7 +101,7 @@ public class FailureProcessor : BackgroundService
             }
 
             // Delete message from queue after processing
-            await _sqsClient.DeleteMessageAsync(_queueUrl, message.ReceiptHandle);
+            await _sqsClient.DeleteMessageAsync(_emailFailureQueueUrl, message.ReceiptHandle);
             _logger.LogInformation($"Processed and deleted message: {message.MessageId}");
         }
         catch (Exception ex)
