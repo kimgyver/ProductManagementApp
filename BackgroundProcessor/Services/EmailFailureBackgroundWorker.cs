@@ -9,6 +9,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using BackgroundProcessor.Models;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace BackgroundProcessor.Services;
 
@@ -83,7 +85,11 @@ public class EmailFailureBackgroundWorker : BackgroundService
     {
         try
         {
-            // Email verification controller
+            // Get client JWT
+            var jwtToken = await GetClientJwtTokenAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+
+            // Email verification API call
             EmailStatus emailStatus = JsonSerializer.Deserialize<EmailStatus>(message.Body);
             var requestPayload = new
             {
@@ -112,5 +118,27 @@ public class EmailFailureBackgroundWorker : BackgroundService
         {
             _logger.LogError(ex, $"Failed to process message: {message.MessageId}");
         }
+    }
+
+    private async Task<string> GetClientJwtTokenAsync()
+    {
+        var clientSecret = _configuration["JWT:Secret"] ?? throw new ArgumentNullException("JWT:Secret is missing in config.");
+        var clientAuthRequest = new
+        {
+            ClientId = "background-worker",
+            ClientSecret = clientSecret
+        };
+
+        var jsonContent = new StringContent(JsonSerializer.Serialize(clientAuthRequest), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync($"{_apiBaseUrl}/api/Users/login", jsonContent);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception("Failed to get client JWT token");
+        }
+
+        var responseData = await response.Content.ReadFromJsonAsync<TokenResponse>();
+        string jwtToken = responseData?.Token ?? throw new Exception("Invalid token response");
+        return jwtToken;
     }
 }

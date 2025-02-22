@@ -12,12 +12,17 @@ public class UsersController : ControllerBase
   private readonly IUserCommandService _userCommandService;
   private readonly IUserQueryService _userQueryService;
   private readonly ISessionService _sessionService;
+  private readonly IJwtService _jwtService;
+  private readonly IConfiguration _configuration;
 
-  public UsersController(IUserCommandService userCommandService, IUserQueryService userQueryService, ISessionService sessionService)
+  public UsersController(IUserCommandService userCommandService, IUserQueryService userQueryService, ISessionService sessionService,
+      IJwtService jwtService, IConfiguration configuration)
   {
     _userCommandService = userCommandService;
     _userQueryService = userQueryService;
     _sessionService = sessionService;
+    _jwtService = jwtService;
+    _configuration = configuration;
   }
 
   [HttpGet]
@@ -58,6 +63,19 @@ public class UsersController : ControllerBase
   [HttpPost("login")]
   public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
   {
+    // For clients (e.g. background worker)
+    if (loginDto.IsClient)
+    {
+      var clientJwt = _jwtService.GetClientToken(loginDto);
+      return !string.IsNullOrWhiteSpace(clientJwt) ? Ok(new { Token = clientJwt }) : Unauthorized();
+    }
+
+    // For users
+    if (string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
+    {
+      return BadRequest("Email and Password are required for user login.");
+    }
+
     var result = await _userQueryService.AuthenticateUserAsync(loginDto);
     if (result == null)
     {

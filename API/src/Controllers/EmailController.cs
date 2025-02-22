@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using API.Services;
+using API.DTOs;
 
 namespace API.Controller;
 
@@ -15,7 +16,7 @@ public class EmailController : ControllerBase
   }
 
   [HttpPost("verification-failed")]
-  public async Task<IActionResult> MarkEmailVerificationFailed([FromBody] EmailVerificationFailedRequest request)
+  public async Task<IActionResult> MarkEmailVerificationFailed([FromBody] EmailVerificationFailedRequestDto request)
   {
     if (request.Status != "Failed")
     {
@@ -25,10 +26,4 @@ public class EmailController : ControllerBase
     await _userService.MarkUserUnverified(request.Email);
     return Ok(new { message = "User verification status updated to 0" });
   }
-}
-
-public class EmailVerificationFailedRequest
-{
-  public string Email { get; set; }
-  public string Status { get; set; }
 }
