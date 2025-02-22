@@ -40,6 +40,7 @@
 - If email sending fails, the worker sends a message (with email failure notification) to **SQS (EmailFailureQueue)**
 - A **Background Worker (EmailFailureBackgroundWorker)** checks (or receives messages) **SQS (EmailFailureQueue)**
 - If there is a message, the worker calls a **WebAPI** to update the Verified flag in "Users" table to false.
+  (For making a WebAPI call, client (the worker) login and client's JWT token checking precede.)
 
 # Technologies
 
