@@ -116,9 +116,9 @@ public class EmailBackgroundWorker : BackgroundService
 
             _logger.LogInformation($"Message sent to EmailFailureQueue for {message.Body}.");
 
-            // Delete the original failed message from SendEmailQueue
-            await _sqsClient.DeleteMessageAsync(_sendEmailQueueUrl, message.ReceiptHandle, stoppingToken);
-            _logger.LogInformation($"🗑 Deleted failed message from SendEmailQueue: {message.MessageId}");
+            // // Delete the original failed message from SendEmailQueue
+            // await _sqsClient.DeleteMessageAsync(_sendEmailQueueUrl, message.ReceiptHandle, stoppingToken);
+            // _logger.LogInformation($"🗑 Deleted failed message from SendEmailQueue: {message.MessageId}");
 
         }
         catch (Exception ex)
