@@ -23,8 +23,6 @@ jobs:
 
       - name: Build
         run: dotnet build --configuration Release --no-restore
-  test:
-    runs-on: ubuntu-latest
-    steps:
+
       - name: Run Tests
         run: dotnet test --no-restore --verbosity normal
