@@ -22,6 +22,7 @@ public class ProductsControllerTests
     _controller = new ProductsController(_mockProductCommandService.Object, _mockProductQueryService.Object);
   }
 
+  [Fact]
   public async Task GetAllProducts_ReturnsOkResult_WithProducts()
   {
     // Arrange
@@ -93,31 +94,31 @@ public class ProductsControllerTests
   [Fact]
   public async Task AddProduct_ReturnsOk_WhenProductAddedSuccessfully()
   {
-    // // Arrange
-    // var product = new Product { Id = 1, Name = "Product1" };
+    // Arrange
+    var product = new Product { Id = 1, Name = "Product1" };
 
-    // // Mock an admin user
-    // var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-    // {
-    //     new Claim(ClaimTypes.Name, "adminuser"),  // Authenticated user
-    //     new Claim(ClaimTypes.Role, "Admin")       // Admin role
-    // }, "TestAuthType"));
+    var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+    {
+        new Claim(ClaimTypes.Name, "adminuser"),
+        new Claim(ClaimTypes.Role, "Admin")
+    }, "TestAuthType"));
 
-    // _controller.ControllerContext = new ControllerContext
-    // {
-    //   HttpContext = new DefaultHttpContext { User = user }
-    // };
+    _controller.ControllerContext = new ControllerContext
+    {
+      HttpContext = new DefaultHttpContext { User = user }
+    };
 
-    // _mockProductCommandService
-    //     .Setup(service => service.AddProductAsync(It.IsAny<Product>(), It.IsAny<bool>()))
-    //     .ReturnsAsync(true); // Simulate successful product addition
+    _mockProductCommandService
+        .Setup(service => service.AddProductAsync(It.IsAny<Product>(), It.IsAny<bool>()))
+        .ReturnsAsync(true);
 
-    // // Act
-    // var result = await _controller.AddProduct(product);
+    // Act
+    var result = await _controller.AddProduct(product);
 
-    // // Assert
-    // var okResult = Assert.IsType<OkObjectResult>(result);
-    // Assert.Equal("Product added successfully.", okResult.Value);
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    var responseMessage = Assert.IsType<string>(okResult.Value);
+    Assert.Contains("Product added successfully.", responseMessage);
   }
 
   [Fact]

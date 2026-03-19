@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using Amazon.SQS;
 using Amazon.SQS.Model;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text;
@@ -90,7 +89,14 @@ public class EmailFailureBackgroundWorker : BackgroundService
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
 
             // Email verification API call
-            EmailStatus emailStatus = JsonSerializer.Deserialize<EmailStatus>(message.Body);
+            var emailStatus = JsonSerializer.Deserialize<EmailStatus>(message.Body);
+            if (emailStatus == null)
+            {
+                _logger.LogWarning("Invalid email failure payload. MessageId: {MessageId}", message.MessageId);
+                await _sqsClient.DeleteMessageAsync(_emailFailureQueueUrl, message.ReceiptHandle);
+                return;
+            }
+
             var requestPayload = new
             {
                 email = emailStatus.Email,
@@ -122,7 +128,7 @@ public class EmailFailureBackgroundWorker : BackgroundService
 
     private async Task<string> GetClientJwtTokenAsync()
     {
-        var clientSecret = _configuration["JWT:Secret"] ?? throw new ArgumentNullException("JWT:Secret is missing in config.");
+        var clientSecret = _configuration["Jwt:Secret"] ?? throw new ArgumentNullException("Jwt:Secret is missing in config.");
         var clientAuthRequest = new
         {
             ClientId = "background-worker",

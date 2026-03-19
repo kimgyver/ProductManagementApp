@@ -28,7 +28,8 @@ public class UsersController : ControllerBase
   [HttpGet]
   public async Task<IActionResult> Index()
   {
-    return Ok(_userQueryService.GetAllUsersAsync());
+    var users = await _userQueryService.GetAllUsersAsync();
+    return Ok(users);
   }
 
   [HttpPost]

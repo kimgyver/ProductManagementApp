@@ -53,3 +53,39 @@
 - Custom Exception Handling / Global Exception Handler
 - AWS SQS, SES, ~~Lambda~~
 - xUnit for Unit testing
+
+# JWT Service: Key Points
+
+- User logs in (token issued for API access)
+- Background worker/client logs in (token issued for API calls)
+- Any API endpoint requiring authentication/authorization
+
+# UserCommandService / UserQueryService: Key Points
+
+- UserCommandService: Handles user registration, update, deletion, and marking users as unverified (e.g., after email failure).
+- UserQueryService: Handles user data retrieval and authentication (login/password verification).
+- Called when:
+  - User registers (data saved, welcome email triggered)
+  - User updates or deletes their info
+  - Email verification fails (Verified flag set to false)
+  - User logs in (credentials checked)
+  - User data is queried (profile, list)
+
+# ProductCommandService / ProductQueryService: Key Points
+
+- Authenticated user queries product data
+- Admin user creates, updates, or deletes products
+
+# PasswordHasherService / SessionService: Key Points
+
+- PasswordHasherService: Responsible for securely hashing passwords during registration and verifying passwords during login.
+- SessionService: Handles session data storage and cookie authentication for login/logout.
+- Both are used whenever user authentication or credential management is required.
+
+# JWT vs Session Authentication Structure
+
+- The codebase uses both JWT and Session/Cookie authentication in parallel.
+- JWT: Used for API token issuance and client authentication (stateless, for API calls).
+- Session/Cookie: Used for storing user session data and maintaining login state (stateful, for web scenarios).
+- Both mechanisms are enabled; login issues a JWT token and also sets session/cookie data.
+- This allows flexible authentication for both API clients and web users.

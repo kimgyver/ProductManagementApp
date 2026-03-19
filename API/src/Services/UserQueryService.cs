@@ -33,7 +33,7 @@ public class UserQueryService : IUserQueryService
     }
     var token = _jwtService.GenerateTokenForUser(user.Username, user.IsAdmin);
 
-    _sessionService.GenerateSessionAsync(user.Username, user.IsAdmin);
+    await _sessionService.GenerateSessionAsync(user.Username, user.IsAdmin);
 
     return new { Token = token, Message = "Login is successful", User = user };
   }

@@ -2,45 +2,66 @@ using Amazon.SQS;
 using Amazon.Extensions.NETCore.Setup;
 using API.Extensions;
 using API.Middleware;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
-
-builder.Services.AddCustomServices();
-builder.Services.ConfigureAuthentication(builder.Configuration);
-builder.Services.ConfigureDatabase(builder.Configuration);
-builder.Services.ConfigureSwagger();
-
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(options =>
+try
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
 
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddAuthorization();
+    var builder = WebApplication.CreateBuilder(args);
 
-var awsOptions = builder.Configuration.GetAWSOptions();
-builder.Services.AddDefaultAWSOptions(awsOptions);
-builder.Services.AddAWSService<IAmazonSQS>();
+    builder.Host.UseSerilog((context, services, configuration) =>
+        configuration.ReadFrom.Configuration(context.Configuration));
 
-var app = builder.Build();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+    builder.Services.AddControllers();
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+    builder.Services.AddCustomServices();
+    builder.Services.ConfigureAuthentication(builder.Configuration);
+    builder.Services.ConfigureDatabase(builder.Configuration);
+    builder.Services.ConfigureSwagger();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    builder.Services.AddDistributedMemoryCache();
+    builder.Services.AddSession(options =>
+    {
+        options.IdleTimeout = TimeSpan.FromMinutes(30);
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+    });
+
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddAuthorization();
+
+    var awsOptions = builder.Configuration.GetAWSOptions();
+    builder.Services.AddDefaultAWSOptions(awsOptions);
+    builder.Services.AddAWSService<IAmazonSQS>();
+
+    var app = builder.Build();
+
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseSession();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.MapControllers();
+    app.Run();
+
 }
-
-app.UseSession();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "API host terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

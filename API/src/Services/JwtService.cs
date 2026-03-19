@@ -24,7 +24,7 @@ public class JwtService : IJwtService
       new Claim(ClaimTypes.Role, isAdmin ? "Admin" : "User")
     };
 
-    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]));
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(GetJwtSecret()));
     var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
     var token = new JwtSecurityToken(
@@ -46,7 +46,7 @@ public class JwtService : IJwtService
         new Claim("role", "Client") // Custom claim to indicate client role
     };
 
-    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]));
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(GetJwtSecret()));
     var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
     var token = new JwtSecurityToken(
@@ -62,11 +62,17 @@ public class JwtService : IJwtService
 
   public string GetClientToken(UserLoginDto loginDto)
   {
-    if (loginDto.ClientId == "background-worker" && loginDto.ClientSecret == _configuration["JWT:Secret"])
+    if (loginDto.ClientId == "background-worker" && loginDto.ClientSecret == GetJwtSecret())
     {
       var token = GenerateTokenForClient(loginDto.ClientId);
       return token;
     }
     return string.Empty;
+  }
+
+  private string GetJwtSecret()
+  {
+    return _configuration["Jwt:Secret"]
+      ?? throw new InvalidOperationException("Jwt:Secret is missing in configuration.");
   }
 }
