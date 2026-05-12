@@ -25,6 +25,11 @@ public static class PasswordHasher
       return false;
     }
 
+    if (storedHash.StartsWith("$2a$") || storedHash.StartsWith("$2b$") || storedHash.StartsWith("$2y$"))
+    {
+      return BCrypt.Net.BCrypt.Verify(password, storedHash);
+    }
+
     var parts = storedHash.Split(':');
     if (parts.Length != 2)
     {
