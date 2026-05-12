@@ -18,12 +18,18 @@ public static class ServiceExtensions
     services.AddScoped<IPasswordHasherService, PasswordHasherService>();
     services.AddScoped<IUserRepository, UserRepository>();
     services.AddScoped<IProductRepository, ProductRepository>();
+    services.AddScoped<IOrderRepository, OrderRepository>();
     services.AddScoped<IUserCommandService, UserCommandService>();
     services.AddScoped<IUserQueryService, UserQueryService>();
     services.AddScoped<IProductCommandService, ProductCommandService>();
     services.AddScoped<IProductQueryService, ProductQueryService>();
+    services.AddScoped<IOrderCommandService, OrderCommandService>();
+    services.AddScoped<IOrderQueryService, OrderQueryService>();
+    services.AddScoped<IPaymentService, MockPaymentService>();
+    services.AddScoped<IAdminService, AdminService>();
     services.AddScoped<IJwtService, JwtService>();
     services.AddScoped<ISessionService, SessionService>();
+    services.AddScoped<IEmailService, ResendEmailService>();
 
     services.AddControllers();
   }
@@ -61,7 +67,8 @@ public static class ServiceExtensions
   {
     services.AddDbContext<ApplicationDbContext>(options =>
     {
-      options.UseSqlite("Data Source=app.db");
+      var connectionString = configuration.GetConnectionString("DefaultConnection");
+      options.UseNpgsql(connectionString);
     });
   }
 

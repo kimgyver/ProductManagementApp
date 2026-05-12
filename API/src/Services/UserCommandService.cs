@@ -11,16 +11,19 @@ public class UserCommandService : IUserCommandService
 {
   private readonly IUserRepository _userRepository;
   private readonly IPasswordHasherService _passwordHasherService;
-  private readonly IConfiguration _configuration;
-  private readonly IAmazonSQS _sqsClient;
+  private readonly IEmailService _emailService;
+  private readonly ILogger<UserCommandService> _logger;
 
-  public UserCommandService(IUserRepository userRepository, IPasswordHasherService passwordHasherService,
-    IConfiguration configuration, IAmazonSQS sqsClient)
+  public UserCommandService(
+    IUserRepository userRepository, 
+    IPasswordHasherService passwordHasherService,
+    IEmailService emailService,
+    ILogger<UserCommandService> logger)
   {
     _userRepository = userRepository;
     _passwordHasherService = passwordHasherService;
-    _configuration = configuration;
-    _sqsClient = sqsClient;
+    _emailService = emailService;
+    _logger = logger;
   }
 
   public async Task AddUserAsync(User user)
@@ -47,25 +50,23 @@ public class UserCommandService : IUserCommandService
     // Save user to database
     await _userRepository.AddAsync(user);
 
-    // Send message to SQS for email notification
-    var message = new
+    // Send welcome email using Resend (replaces SQS+Lambda+SES)
+    try
     {
-      Email = userDto.Email,
-      Subject = "Welcome!",
-      Body = "Thanks for signing up!"
-    };
-
-    string messageBody = JsonSerializer.Serialize(message);
-    var queueUrl = _configuration["AWS:SQSQueueUrl"];
-
-    var sendMessageRequest = new SendMessageRequest
+      var result = await _emailService.SendWelcomeEmailAsync(userDto.Email, userDto.Username);
+      if (result.Success)
+      {
+        _logger.LogInformation("Welcome email sent to {Email}", userDto.Email);
+      }
+      else
+      {
+        _logger.LogWarning("Failed to send welcome email to {Email}: {Error}", userDto.Email, result.Error);
+      }
+    }
+    catch (Exception ex)
     {
-      QueueUrl = queueUrl,
-      MessageBody = messageBody
-    };
-
-    var response = await _sqsClient.SendMessageAsync(sendMessageRequest);
-    Console.WriteLine($"Message sent! ID: {response.MessageId}, MD5: {response.MD5OfMessageBody}");
+      _logger.LogError(ex, "Exception occurred while sending welcome email to {Email}", userDto.Email);
+    }
   }
 
   public async Task RemoveUserAsync(int id)

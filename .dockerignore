@@ -1,0 +1,13 @@
+bin/
+obj/
+node_modules/
+dist/
+.git/
+.github/
+.vscode/
+.idea/
+*.log
+*.env
+!.env.example
+.DS_Store
+target/
