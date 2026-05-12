@@ -42,7 +42,15 @@ public class ProductRepository : IProductRepository
 
   public async Task<Product?> GetProductByIdAsync(int id)
   {
-    return await _context.Products.FindAsync(id);
+    try
+    {
+      return await _context.Products.FindAsync(id);
+    }
+    catch (Exception ex) when (IsLegacySchemaMismatch(ex))
+    {
+      var legacyProducts = await GetAllProductsFromLegacySchemaAsync();
+      return legacyProducts.FirstOrDefault(p => p.Id == id);
+    }
   }
 
   private async Task<IEnumerable<Product>> GetAllProductsFromLegacySchemaAsync()
@@ -56,7 +64,7 @@ public class ProductRepository : IProductRepository
     }
 
     await using var command = connection.CreateCommand();
-    command.CommandText = "SELECT * FROM \"Product\"";
+    command.CommandText = "SELECT * FROM \"Product\" ORDER BY 1";
 
     await using var reader = await command.ExecuteReaderAsync();
     var index = 1;
