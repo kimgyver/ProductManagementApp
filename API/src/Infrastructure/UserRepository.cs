@@ -35,8 +35,7 @@ public class UserRepository : IUserRepository
         Username = u.Username,
         Email = u.Email,
         HashedPassword = u.HashedPassword,
-        IsAdmin = u.IsAdmin,
-        Verified = u.Verified
+        IsAdmin = u.IsAdmin
       })
       .ToListAsync();
   }
@@ -51,8 +50,7 @@ public class UserRepository : IUserRepository
         Username = u.Username,
         Email = u.Email,
         HashedPassword = u.HashedPassword,
-        IsAdmin = u.IsAdmin,
-        Verified = u.Verified
+        IsAdmin = u.IsAdmin
       })
       .FirstOrDefaultAsync();
   }
