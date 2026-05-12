@@ -28,7 +28,33 @@ public class UserRepository : IUserRepository
 
   public async Task<IEnumerable<User>> GetAllUsersAsync()
   {
-    return await _context.Users.ToListAsync();
+    return await _context.Users
+      .Select(u => new User
+      {
+        Id = u.Id,
+        Username = u.Username,
+        Email = u.Email,
+        HashedPassword = u.HashedPassword,
+        IsAdmin = u.IsAdmin,
+        Verified = u.Verified
+      })
+      .ToListAsync();
+  }
+
+  public async Task<User?> GetUserForLoginByEmailAsync(string email)
+  {
+    return await _context.Users
+      .Where(u => u.Email == email)
+      .Select(u => new User
+      {
+        Id = u.Id,
+        Username = u.Username,
+        Email = u.Email,
+        HashedPassword = u.HashedPassword,
+        IsAdmin = u.IsAdmin,
+        Verified = u.Verified
+      })
+      .FirstOrDefaultAsync();
   }
 
   public async Task RemoveUserAsync(int id)

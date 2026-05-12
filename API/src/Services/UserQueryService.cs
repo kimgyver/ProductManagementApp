@@ -26,7 +26,12 @@ public class UserQueryService : IUserQueryService
 
   public async Task<object?> AuthenticateUserAsync(UserLoginDto loginDto)
   {
-    var user = (await GetAllUsersAsync()).FirstOrDefault(u => u.Email == loginDto.Email);
+    if (string.IsNullOrWhiteSpace(loginDto.Email))
+    {
+      return null;
+    }
+
+    var user = await _userRepository.GetUserForLoginByEmailAsync(loginDto.Email);
     if (user == null || string.IsNullOrWhiteSpace(user.HashedPassword) || string.IsNullOrWhiteSpace(loginDto.Password))
     {
       return null; // Invalid credentials
