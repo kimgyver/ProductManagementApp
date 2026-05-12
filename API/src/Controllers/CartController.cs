@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using API.Infrastructure;
-using API.Models;
+using API.Services;
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace API.Controllers;
 
@@ -11,12 +10,13 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class CartController : ControllerBase
 {
-  private readonly ApplicationDbContext _context;
+  private readonly IProductQueryService _productQueryService;
   private readonly ILogger<CartController> _logger;
+  private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-  public CartController(ApplicationDbContext context, ILogger<CartController> logger)
+  public CartController(IProductQueryService productQueryService, ILogger<CartController> logger)
   {
-    _context = context;
+    _productQueryService = productQueryService;
     _logger = logger;
   }
 
@@ -25,35 +25,34 @@ public class CartController : ControllerBase
   [Authorize]
   public async Task<ActionResult<object>> GetCart()
   {
-    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+    var userKey = GetUserKey();
+    if (string.IsNullOrWhiteSpace(userKey))
+      return Unauthorized(new { error = "Invalid user context" });
 
-    var cart = await _context.Carts
-      .Include(c => c.Items)
-      .ThenInclude(ci => ci.Product)
-      .FirstOrDefaultAsync(c => c.UserId == userId);
+    var sessionCart = GetCartFromSession(userKey);
+    var products = (await _productQueryService.GetAllProductsAsync()).ToDictionary(p => p.Id);
 
-    if (cart == null)
+    var items = sessionCart.Select(ci =>
     {
-      // Create new cart if doesn't exist
-      cart = new Cart { UserId = userId };
-      _context.Carts.Add(cart);
-      await _context.SaveChangesAsync();
-    }
-
-    return Ok(new
-    {
-      id = cart.Id,
-      items = cart.Items.Select(ci => new
+      products.TryGetValue(ci.ProductId, out var product);
+      var price = product?.Price ?? 0m;
+      return new
       {
         id = ci.Id,
         productId = ci.ProductId,
-        productName = ci.Product?.Name,
+        productName = product?.Name,
         quantity = ci.Quantity,
-        price = ci.Product?.Price,
+        price,
         selectedOptions = ci.SelectedOptions,
         variantKey = ci.VariantKey
-      }).ToList(),
-      totalPrice = cart.Items.Sum(ci => (ci.Product?.Price ?? 0) * ci.Quantity)
+      };
+    }).ToList();
+
+    return Ok(new
+    {
+      id = userKey,
+      items,
+      totalPrice = items.Sum(ci => ci.price * ci.quantity)
     });
   }
 
@@ -67,56 +66,47 @@ public class CartController : ControllerBase
 
     try
     {
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      var userKey = GetUserKey();
+      if (string.IsNullOrWhiteSpace(userKey))
+        return Unauthorized(new { error = "Invalid user context" });
 
-      var product = await _context.Products.FindAsync(dto.ProductId);
+      var product = await _productQueryService.GetProductByIdAsync(dto.ProductId);
       if (product == null)
         return NotFound(new { error = "Product not found" });
 
-      var cart = await _context.Carts
-        .Include(c => c.Items)
-        .FirstOrDefaultAsync(c => c.UserId == userId);
-
-      if (cart == null)
-      {
-        cart = new Cart { UserId = userId };
-        _context.Carts.Add(cart);
-        await _context.SaveChangesAsync();
-      }
+      var cart = GetCartFromSession(userKey);
 
       var variantKey = GenerateVariantKey(dto.SelectedOptions);
-      var existingItem = cart.Items.FirstOrDefault(ci =>
+      var existingItem = cart.FirstOrDefault(ci =>
         ci.ProductId == dto.ProductId && ci.VariantKey == variantKey);
 
       if (existingItem != null)
       {
         existingItem.Quantity += dto.Quantity;
-        existingItem.UpdatedAt = DateTime.UtcNow;
       }
       else
       {
-        var cartItem = new CartItem
+        var cartItem = new SessionCartItem
         {
-          CartId = cart.Id,
+          Id = cart.Count == 0 ? 1 : cart.Max(c => c.Id) + 1,
           ProductId = dto.ProductId,
-          Quantity = dto.Quantity,
+          Quantity = dto.Quantity <= 0 ? 1 : dto.Quantity,
           SelectedOptions = dto.SelectedOptions,
           VariantKey = variantKey
         };
-        cart.Items.Add(cartItem);
+        cart.Add(cartItem);
       }
 
-      cart.UpdatedAt = DateTime.UtcNow;
-      await _context.SaveChangesAsync();
+      SaveCartToSession(userKey, cart);
 
-      _logger.LogInformation("Product {ProductId} added to cart for user {UserId}", dto.ProductId, userId);
+      _logger.LogInformation("Product {ProductId} added to cart for user {UserKey}", dto.ProductId, userKey);
 
       return Ok(new { message = "Item added to cart" });
     }
     catch (Exception ex)
     {
       _logger.LogError(ex, "Error adding item to cart");
-      return StatusCode(500, new { error = "Error adding item to cart" });
+      return StatusCode(500, new { error = "Error adding item to cart", detail = ex.Message });
     }
   }
 
@@ -127,29 +117,26 @@ public class CartController : ControllerBase
   {
     try
     {
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      var userKey = GetUserKey();
+      if (string.IsNullOrWhiteSpace(userKey))
+        return Unauthorized(new { error = "Invalid user context" });
 
-      var cartItem = await _context.CartItems
-        .Include(ci => ci.Cart)
-        .FirstOrDefaultAsync(ci => ci.Id == itemId);
+      var cart = GetCartFromSession(userKey);
+      var cartItem = cart.FirstOrDefault(ci => ci.Id == itemId);
 
       if (cartItem == null)
         return NotFound(new { error = "Cart item not found" });
 
-      if (cartItem.Cart?.UserId != userId)
-        return Forbid();
+      cartItem.Quantity = dto.Quantity <= 0 ? 1 : dto.Quantity;
 
-      cartItem.Quantity = dto.Quantity;
-      cartItem.UpdatedAt = DateTime.UtcNow;
-
-      await _context.SaveChangesAsync();
+      SaveCartToSession(userKey, cart);
 
       return Ok(new { message = "Cart item updated" });
     }
     catch (Exception ex)
     {
       _logger.LogError(ex, "Error updating cart item");
-      return StatusCode(500, new { error = "Error updating cart item" });
+      return StatusCode(500, new { error = "Error updating cart item", detail = ex.Message });
     }
   }
 
@@ -160,29 +147,27 @@ public class CartController : ControllerBase
   {
     try
     {
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      var userKey = GetUserKey();
+      if (string.IsNullOrWhiteSpace(userKey))
+        return Unauthorized(new { error = "Invalid user context" });
 
-      var cartItem = await _context.CartItems
-        .Include(ci => ci.Cart)
-        .FirstOrDefaultAsync(ci => ci.Id == itemId);
+      var cart = GetCartFromSession(userKey);
+      var cartItem = cart.FirstOrDefault(ci => ci.Id == itemId);
 
       if (cartItem == null)
         return NotFound(new { error = "Cart item not found" });
 
-      if (cartItem.Cart?.UserId != userId)
-        return Forbid();
+      cart.Remove(cartItem);
+      SaveCartToSession(userKey, cart);
 
-      _context.CartItems.Remove(cartItem);
-      await _context.SaveChangesAsync();
-
-      _logger.LogInformation("Item {ItemId} removed from cart for user {UserId}", itemId, userId);
+      _logger.LogInformation("Item {ItemId} removed from cart for user {UserKey}", itemId, userKey);
 
       return Ok(new { message = "Item removed from cart" });
     }
     catch (Exception ex)
     {
       _logger.LogError(ex, "Error removing item from cart");
-      return StatusCode(500, new { error = "Error removing item from cart" });
+      return StatusCode(500, new { error = "Error removing item from cart", detail = ex.Message });
     }
   }
 
@@ -193,28 +178,52 @@ public class CartController : ControllerBase
   {
     try
     {
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      var userKey = GetUserKey();
+      if (string.IsNullOrWhiteSpace(userKey))
+        return Unauthorized(new { error = "Invalid user context" });
 
-      var cart = await _context.Carts
-        .Include(c => c.Items)
-        .FirstOrDefaultAsync(c => c.UserId == userId);
+      SaveCartToSession(userKey, new List<SessionCartItem>());
 
-      if (cart == null)
-        return NotFound(new { error = "Cart not found" });
-
-      _context.CartItems.RemoveRange(cart.Items);
-      await _context.SaveChangesAsync();
-
-      _logger.LogInformation("Cart cleared for user {UserId}", userId);
+      _logger.LogInformation("Cart cleared for user {UserKey}", userKey);
 
       return Ok(new { message = "Cart cleared" });
     }
     catch (Exception ex)
     {
       _logger.LogError(ex, "Error clearing cart");
-      return StatusCode(500, new { error = "Error clearing cart" });
+      return StatusCode(500, new { error = "Error clearing cart", detail = ex.Message });
     }
   }
+
+  private string? GetUserKey()
+  {
+    return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+      ?? User.FindFirst(ClaimTypes.Name)?.Value
+      ?? User.FindFirst(ClaimTypes.Email)?.Value;
+  }
+
+  private List<SessionCartItem> GetCartFromSession(string userKey)
+  {
+    var raw = HttpContext.Session.GetString(GetCartSessionKey(userKey));
+    if (string.IsNullOrWhiteSpace(raw))
+      return new List<SessionCartItem>();
+
+    try
+    {
+      return JsonSerializer.Deserialize<List<SessionCartItem>>(raw, JsonOptions) ?? new List<SessionCartItem>();
+    }
+    catch
+    {
+      return new List<SessionCartItem>();
+    }
+  }
+
+  private void SaveCartToSession(string userKey, List<SessionCartItem> items)
+  {
+    HttpContext.Session.SetString(GetCartSessionKey(userKey), JsonSerializer.Serialize(items, JsonOptions));
+  }
+
+  private static string GetCartSessionKey(string userKey) => $"cart:{userKey}";
 
   private string GenerateVariantKey(string? selectedOptions)
   {
@@ -235,4 +244,13 @@ public class AddToCartDto
 public class UpdateCartItemDto
 {
   public int Quantity { get; set; }
+}
+
+public class SessionCartItem
+{
+  public int Id { get; set; }
+  public int ProductId { get; set; }
+  public int Quantity { get; set; }
+  public string VariantKey { get; set; } = string.Empty;
+  public string? SelectedOptions { get; set; }
 }
