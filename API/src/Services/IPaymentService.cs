@@ -33,7 +33,7 @@ public class MockPaymentService : IPaymentService
 
       if (Math.Abs(order.TotalPrice - amount) > 0.01m)
       {
-        _logger.LogWarning("Payment amount mismatch for order {OrderId}: expected {Expected}, got {Actual}", 
+        _logger.LogWarning("Payment amount mismatch for order {OrderId}: expected {Expected}, got {Actual}",
           orderId, order.TotalPrice, amount);
         return (false, "");
       }
@@ -45,7 +45,7 @@ public class MockPaymentService : IPaymentService
       if (isSuccess)
       {
         var paymentIntentId = $"pi_{Guid.NewGuid().ToString()[..12]}";
-        _logger.LogInformation("[Payment] Mock payment processed successfully - OrderId: {OrderId}, Amount: {Amount}, PaymentIntentId: {PaymentIntentId}", 
+        _logger.LogInformation("[Payment] Mock payment processed successfully - OrderId: {OrderId}, Amount: {Amount}, PaymentIntentId: {PaymentIntentId}",
           orderId, amount, paymentIntentId);
         return (true, paymentIntentId);
       }

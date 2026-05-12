@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import type { Product } from '../types';
-import { ProductCard } from '../components/ProductCard';
-import apiClient from '../api/client';
+import React, { useState, useEffect } from "react";
+import type { Product } from "../types";
+import { ProductCard } from "../components/ProductCard";
+import apiClient from "../api/client";
 
 export const ProductListPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
     fetchProducts();
@@ -16,24 +16,26 @@ export const ProductListPage: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await apiClient.get('/products');
+      const response = await apiClient.get("/products");
       setProducts(response.data || []);
     } catch (err) {
-      setError('Failed to load products');
+      setError("Failed to load products");
       console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredProducts = products.filter(product => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || product.category === selectedCategory;
+    const matchesCategory =
+      !selectedCategory || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const categories = Array.from(new Set(products.map((p) => p.category)));
+  const categories = Array.from(new Set(products.map(p => p.category)));
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -57,7 +59,7 @@ export const ProductListPage: React.FC = () => {
                 type="text"
                 placeholder="Search products..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -68,11 +70,11 @@ export const ProductListPage: React.FC = () => {
               </label>
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={e => setSelectedCategory(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">All Categories</option>
-                {categories.map((cat) => (
+                {categories.map(cat => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
@@ -99,7 +101,7 @@ export const ProductListPage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
+                {filteredProducts.map(product => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>

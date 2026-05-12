@@ -15,7 +15,7 @@ public class UserCommandService : IUserCommandService
   private readonly ILogger<UserCommandService> _logger;
 
   public UserCommandService(
-    IUserRepository userRepository, 
+    IUserRepository userRepository,
     IPasswordHasherService passwordHasherService,
     IEmailService emailService,
     ILogger<UserCommandService> logger)

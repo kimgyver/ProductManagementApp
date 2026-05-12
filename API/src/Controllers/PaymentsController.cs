@@ -56,10 +56,10 @@ public class PaymentsController : ControllerBase
       );
 
       if (!success)
-        return BadRequest(new PaymentResponseDto 
-        { 
-          Success = false, 
-          Message = "Payment processing failed. Please try again." 
+        return BadRequest(new PaymentResponseDto
+        {
+          Success = false,
+          Message = "Payment processing failed. Please try again."
         });
 
       // Complete payment

@@ -1,13 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import type { Product } from '../types';
+import React from "react";
+import { Link } from "react-router-dom";
+import type { Product } from "../types";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const discountPercent = Math.random() < 0.3 ? Math.floor(Math.random() * 30) + 10 : 0;
+  const discountPercent =
+    Math.random() < 0.3 ? Math.floor(Math.random() * 30) + 10 : 0;
   const discountedPrice = product.price * (1 - discountPercent / 100);
 
   return (
@@ -20,9 +21,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </div>
 
       <div className="p-4 flex-1 flex flex-col">
-        <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 mb-2">{product.name}</h3>
+        <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 mb-2">
+          {product.name}
+        </h3>
 
-        <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-1">{product.description}</p>
+        <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-1">
+          {product.description}
+        </p>
 
         <div className="flex items-center gap-2 mb-3">
           <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
@@ -50,8 +55,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         <div className="flex items-center gap-2 mb-3">
           <div className="flex text-yellow-400">
-            {'★'.repeat(Math.round(product.rating))}
-            {'☆'.repeat(5 - Math.round(product.rating))}
+            {"★".repeat(Math.round(product.rating))}
+            {"☆".repeat(5 - Math.round(product.rating))}
           </div>
           <span className="text-xs text-gray-600">
             ({product.reviewCount} reviews)
@@ -60,7 +65,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         <button
           className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          onClick={(e) => {
+          onClick={e => {
             e.preventDefault();
             // Will implement cart functionality
           }}

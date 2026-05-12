@@ -5,28 +5,33 @@ This guide covers deploying the E-Commerce Application to cloud platforms (AWS, 
 ## Quick Start - Local Docker Deployment
 
 ### Prerequisites
+
 - Docker installed
 - Docker Compose installed
 
 ### Steps
 
 1. **Clone/Navigate to project**
+
 ```bash
 cd ProductManagementApp
 ```
 
 2. **Update environment variables**
-Edit `docker-compose.yml` and set:
+   Edit `docker-compose.yml` and set:
+
 - `Jwt__Secret`: Your secure JWT secret key
 - `Email__ResendApiKey`: Your Resend email API key
 - Database password: `POSTGRES_PASSWORD`
 
 3. **Start services**
+
 ```bash
 docker-compose up -d
 ```
 
 4. **Verify services**
+
 ```bash
 # Check running containers
 docker-compose ps
@@ -39,11 +44,13 @@ docker-compose logs frontend
 ```
 
 5. **Access application**
+
 - Frontend: http://localhost:3000
 - API: http://localhost:5000
 - Database: localhost:5432
 
 6. **Stop services**
+
 ```bash
 docker-compose down
 ```
@@ -53,12 +60,14 @@ docker-compose down
 ### Option 1: AWS (Recommended for scalability)
 
 **Best for:**
+
 - High-traffic applications
 - Need for auto-scaling
 - Complex infrastructure requirements
 - Budget: $90-160/month
 
 **Key Services:**
+
 - ECS Fargate (containerized API and Frontend)
 - RDS PostgreSQL (managed database)
 - Application Load Balancer (traffic distribution)
@@ -70,12 +79,14 @@ docker-compose down
 ### Option 2: Azure (Recommended for Microsoft Stack)
 
 **Best for:**
+
 - Organizations using Azure ecosystem
 - Integration with Microsoft services
 - Simpler setup for smaller apps
 - Budget: $82-145/month
 
 **Key Services:**
+
 - App Service (API hosting)
 - Static Web Apps (Frontend hosting)
 - Azure SQL Database (managed PostgreSQL)
@@ -87,12 +98,14 @@ docker-compose down
 ### Option 3: Heroku (Fastest to deploy)
 
 **Best for:**
+
 - Quick prototyping
 - Small-scale applications
 - Minimal DevOps knowledge needed
 - Budget: $20-50/month
 
 **Steps:**
+
 ```bash
 # Login
 heroku login
@@ -111,6 +124,7 @@ git push heroku main
 ## Pre-Deployment Checklist
 
 ### Backend Configuration
+
 - [ ] Update `appsettings.Production.json` with production secrets
 - [ ] Configure CORS settings for frontend URL
 - [ ] Set JWT expiration times
@@ -121,6 +135,7 @@ git push heroku main
 - [ ] Configure backup strategy
 
 ### Frontend Configuration
+
 - [ ] Update `.env.production` with API URL
 - [ ] Run `npm run build` to create production build
 - [ ] Test in production build mode locally
@@ -129,6 +144,7 @@ git push heroku main
 - [ ] Configure analytics (optional)
 
 ### Database
+
 - [ ] Create database backup
 - [ ] Run migrations on target database
 - [ ] Verify connection string format
@@ -136,6 +152,7 @@ git push heroku main
 - [ ] Configure read replicas (optional)
 
 ### Security
+
 - [ ] Change default passwords
 - [ ] Generate new JWT secrets
 - [ ] Setup SSL certificates
@@ -307,6 +324,7 @@ az webapp deployment slot swap \
 ### Connection Issues
 
 **Problem:** Cannot connect to database
+
 ```bash
 # Check connection string
 # Verify security groups/firewall rules allow inbound 5432
@@ -315,6 +333,7 @@ psql -h hostname -U username -d database_name
 ```
 
 **Problem:** API returns 502 Bad Gateway
+
 ```bash
 # Check logs
 docker-compose logs api
@@ -326,12 +345,14 @@ docker-compose restart api
 ### Performance Issues
 
 **Problem:** Slow response times
+
 - Check database query performance
 - Enable caching
 - Scale horizontally (add more instances)
 - Optimize frontend bundle size
 
 **Problem:** High memory usage
+
 - Check for memory leaks
 - Increase allocated memory
 - Optimize database queries
@@ -339,12 +360,14 @@ docker-compose restart api
 ## Cost Optimization
 
 ### AWS
+
 - Use Reserved Instances for predictable load
 - Setup CloudFront distribution
 - Use S3 for static content
 - Enable auto-scaling policies
 
 ### Azure
+
 - Use Reserved Instances
 - Setup auto-scale based on metrics
 - Use CDN for global distribution
@@ -365,10 +388,12 @@ psql -h hostname -U username database_name < backup.sql
 ### Automated Backups
 
 **AWS:**
+
 - Enable RDS automated backups (7-35 days retention)
 - Setup automated snapshots
 
 **Azure:**
+
 - Enable automatic backups
 - Configure geo-redundancy
 
@@ -394,6 +419,7 @@ psql -h hostname -U username database_name < backup.sql
 ## Deployment Checklist
 
 ### Pre-Deployment
+
 - [ ] All tests passing
 - [ ] Code reviewed
 - [ ] Dependencies updated
@@ -404,6 +430,7 @@ psql -h hostname -U username database_name < backup.sql
 - [ ] Monitoring setup complete
 
 ### Deployment Day
+
 - [ ] Backup database
 - [ ] Deploy to staging first
 - [ ] Run smoke tests
@@ -413,6 +440,7 @@ psql -h hostname -U username database_name < backup.sql
 - [ ] Test user workflows
 
 ### Post-Deployment
+
 - [ ] Monitor error rates
 - [ ] Check performance metrics
 - [ ] Verify all integrations working

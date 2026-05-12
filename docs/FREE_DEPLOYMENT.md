@@ -17,6 +17,7 @@
 ## 🎯 전략 1: 무료 PaaS 조합 (가장 추천!)
 
 ### 장점
+
 ✅ 배포 매우 간단 (Git push만으로 배포)
 ✅ DB 마이그레이션 불필요
 ✅ 모두 무료 또는 거의 무료
@@ -24,6 +25,7 @@
 ✅ 자동 스케일링
 
 ### 비용 분석
+
 - **Vercel** (프론트): $0 (무료)
 - **Railway** (백엔드): $0 (월 $5 크레딧 무료)
 - **Supabase PostgreSQL** (DB): $0 (무료 플랜)
@@ -154,12 +156,12 @@ cd frontend && vercel
 
 ## 🎯 배포 형태 비교
 
-| 방식 | 장점 | 단점 | 비용 |
-|------|------|------|------|
-| **Vercel + Railway + Supabase** | 매우 간단, 매우 빠름, 자동 배포 | 소규모 프로젝트용 | $0 |
-| **AWS Free Tier** | 강력한 리소스 | 12개월 제한, 설정 복잡 | $0 (12개월) |
-| **Azure Free Tier** | 강력한 리소스 | 12개월 제한, 설정 복잡 | $0 (12개월) |
-| **Docker + AWS/Azure** | 프로덕션급 | 설정 복잡, 비용 높음 | $80+/월 |
+| 방식                            | 장점                            | 단점                   | 비용        |
+| ------------------------------- | ------------------------------- | ---------------------- | ----------- |
+| **Vercel + Railway + Supabase** | 매우 간단, 매우 빠름, 자동 배포 | 소규모 프로젝트용      | $0          |
+| **AWS Free Tier**               | 강력한 리소스                   | 12개월 제한, 설정 복잡 | $0 (12개월) |
+| **Azure Free Tier**             | 강력한 리소스                   | 12개월 제한, 설정 복잡 | $0 (12개월) |
+| **Docker + AWS/Azure**          | 프로덕션급                      | 설정 복잡, 비용 높음   | $80+/월     |
 
 **추천**: Vercel + Railway + Supabase (가장 간단, 가장 무료) ⭐
 
@@ -312,12 +314,12 @@ psql -h db.supabase.co -U postgres -d postgres < backup.sql
 
 ## 🆚 비용 비교
 
-| 옵션 | 프론트 | 백엔드 | DB | 총 월비용 |
-|------|--------|--------|-----|----------|
-| Vercel + Railway + Supabase | $0 | $0 | $0 | **$0** ⭐ |
-| AWS Free (12개월) | $0 | $0 | $0 | **$0** (12개월 후 $50+) |
-| Azure Free (12개월) | $0 | $0 | $0 | **$0** (12개월 후 $40+) |
-| AWS Production | $10 | $50 | $20 | **$80+** |
+| 옵션                        | 프론트 | 백엔드 | DB  | 총 월비용               |
+| --------------------------- | ------ | ------ | --- | ----------------------- |
+| Vercel + Railway + Supabase | $0     | $0     | $0  | **$0** ⭐               |
+| AWS Free (12개월)           | $0     | $0     | $0  | **$0** (12개월 후 $50+) |
+| Azure Free (12개월)         | $0     | $0     | $0  | **$0** (12개월 후 $40+) |
+| AWS Production              | $10    | $50    | $20 | **$80+**                |
 
 **가장 추천**: Vercel + Railway + Supabase (영구 무료) ⭐⭐⭐
 
@@ -326,6 +328,7 @@ psql -h db.supabase.co -U postgres -d postgres < backup.sql
 ## 📝 각 플랫폼 프리 티어 한계
 
 ### Vercel Free
+
 - ✅ 무료 배포
 - ✅ 자동 SSL
 - ✅ CDN (전 세계)
@@ -333,6 +336,7 @@ psql -h db.supabase.co -U postgres -d postgres < backup.sql
 - ⚠️ 함수 메모리 1024MB
 
 ### Railway Free
+
 - ✅ $5/월 크레딧 (자동)
 - ✅ Docker 지원
 - ✅ PostgreSQL 연결 가능
@@ -340,6 +344,7 @@ psql -h db.supabase.co -U postgres -d postgres < backup.sql
 - ℹ️ 일반적으로 $5로 충분
 
 ### Supabase Free
+
 - ✅ PostgreSQL 1GB
 - ✅ 프로젝트 1개
 - ✅ API 자동 생성
@@ -362,7 +367,7 @@ psql -h db.supabase.co -U postgres -d postgres < backup.sql
 5단계: 환경 변수 연결 (2분)
    ↓
 6단계: 테스트 및 검증 (3분)
-   
+
 총 소요 시간: 약 20분
 ```
 
@@ -371,6 +376,7 @@ psql -h db.supabase.co -U postgres -d postgres < backup.sql
 ## 🆘 문제 해결
 
 ### Railway에서 .NET 앱이 시작 안 됨
+
 ```bash
 # 확인사항:
 # 1. Dockerfile.api 확인
@@ -379,6 +385,7 @@ psql -h db.supabase.co -U postgres -d postgres < backup.sql
 ```
 
 ### Vercel에서 API 연결 안 됨
+
 ```bash
 # 확인사항:
 # 1. VITE_API_URL 올바른지 확인
@@ -387,6 +394,7 @@ psql -h db.supabase.co -U postgres -d postgres < backup.sql
 ```
 
 ### Supabase 연결 타임아웃
+
 ```bash
 # 확인사항:
 # 1. Connection string 올바른지 확인

@@ -5,6 +5,7 @@ A complete, production-ready e-commerce platform built with .NET 8.0 backend and
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker & Docker Compose
 - Node.js 20+ (for local frontend development)
 - .NET 8.0 SDK (for local backend development)
@@ -23,6 +24,7 @@ docker-compose logs -f
 ```
 
 Services will be available at:
+
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:5000
 - **Database**: localhost:5432
@@ -30,6 +32,7 @@ Services will be available at:
 ## 🏗️ Architecture Overview
 
 ### Projects in Solution
+
 - **API**: ASP.NET Core WebAPI (20+ endpoints)
 - **BackgroundProcessor**: Background Worker for email notifications
 - **API.Test**: xUnit test project
@@ -37,6 +40,7 @@ Services will be available at:
 ### Key Features
 
 **User Features**:
+
 - User registration with validation
 - Secure login/logout with JWT + Session
 - Product browsing with search & filters
@@ -46,6 +50,7 @@ Services will be available at:
 - Order history
 
 **Admin Features**:
+
 - Dashboard with statistics
 - User management
 - Order management & tracking
@@ -56,6 +61,7 @@ Services will be available at:
 ## 🏃 Running Locally
 
 ### Backend
+
 ```bash
 cd API
 dotnet restore
@@ -65,6 +71,7 @@ dotnet run
 ```
 
 ### Frontend
+
 ```bash
 cd frontend
 npm install
@@ -73,6 +80,7 @@ npm run dev
 ```
 
 ### Background Worker
+
 ```bash
 cd BackgroundProcessor
 dotnet restore
@@ -83,12 +91,14 @@ dotnet run
 ## 📦 API Endpoints (20+)
 
 ### Authentication
+
 - `POST /api/users/register` - Register new user
 - `POST /api/users/login` - User login
 - `POST /api/users/logout` - User logout
 - `GET /api/users/profile` - Get profile (protected)
 
 ### Products
+
 - `GET /api/products` - List products
 - `GET /api/products/{id}` - Get product details
 - `POST /api/products` - Create product (admin)
@@ -96,6 +106,7 @@ dotnet run
 - `DELETE /api/products/{id}` - Delete product (admin)
 
 ### Cart
+
 - `GET /api/cart` - Get user's cart
 - `POST /api/cart/items` - Add item to cart
 - `PUT /api/cart/items/{id}` - Update item quantity
@@ -103,6 +114,7 @@ dotnet run
 - `DELETE /api/cart` - Clear cart
 
 ### Orders
+
 - `POST /api/orders` - Create order
 - `GET /api/orders` - List user's orders
 - `GET /api/orders/{id}` - Get order details
@@ -110,11 +122,13 @@ dotnet run
 - `POST /api/orders/{id}/refund` - Request refund
 
 ### Payments
+
 - `POST /api/payments/process` - Process payment (mock)
 - `GET /api/payments/{id}/status` - Get payment status
 - `POST /api/payments/{id}/refund` - Refund payment
 
 ### Admin (Admin only)
+
 - `GET /api/admin/dashboard` - Dashboard stats
 - `GET /api/admin/users` - List users
 - `GET /api/admin/orders` - List all orders
@@ -122,17 +136,17 @@ dotnet run
 
 ## 🧬 Tech Stack
 
-| Component | Technology |
-|-----------|-----------|
-| Backend | .NET 8.0 / ASP.NET Core |
-| Frontend | React 19 + TypeScript |
-| Build Tool | Vite |
-| Database | PostgreSQL 16 |
-| ORM | Entity Framework Core 8.0 |
-| Authentication | JWT + Session |
-| HTTP Client | Axios |
-| Styling | Tailwind CSS v3 |
-| Containerization | Docker |
+| Component        | Technology                |
+| ---------------- | ------------------------- |
+| Backend          | .NET 8.0 / ASP.NET Core   |
+| Frontend         | React 19 + TypeScript     |
+| Build Tool       | Vite                      |
+| Database         | PostgreSQL 16             |
+| ORM              | Entity Framework Core 8.0 |
+| Authentication   | JWT + Session             |
+| HTTP Client      | Axios                     |
+| Styling          | Tailwind CSS v3           |
+| Containerization | Docker                    |
 
 ## 🔐 Authentication & Authorization
 
@@ -145,6 +159,7 @@ dotnet run
 ## ☁️ 배포
 
 ### 무료 배포 (권장) ⭐
+
 **Vercel + Railway + Neon 조합 - $0/월, 15분**
 
 기존 Neon DB 그대로 사용, 마이그레이션 불필요!
@@ -159,6 +174,7 @@ dotnet run
 ```
 
 결과:
+
 - 프론트엔드: https://your-app.vercel.app
 - 백엔드: https://your-api.up.railway.app
 - 데이터베이스: Neon PostgreSQL (기존 데이터 유지)
@@ -167,14 +183,19 @@ dotnet run
 See [QUICK_DEPLOYMENT.md](docs/QUICK_DEPLOYMENT.md) for detailed 4-step guide
 
 ### 배포 형태 비교
+
 See [DEPLOYMENT_COMPARISON.md](docs/DEPLOYMENT_COMPARISON.md)
 
 ### AWS 배포 (프로덕션급)
+
 See [AWS_DEPLOYMENT.md](docs/AWS_DEPLOYMENT.md)
+
 - Cost: ~$90-160/month
 
 ### Azure 배포 (프로덕션급)
+
 See [AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md)
+
 - Cost: ~$82-145/month
 
 ## 📚 Documentation
@@ -188,12 +209,14 @@ See [AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md)
 ## 🧪 Testing
 
 ### Backend Tests
+
 ```bash
 cd API.Test
 dotnet test
 ```
 
 ### Manual Frontend Testing
+
 1. Register new account
 2. Browse products
 3. Add items to cart
@@ -242,6 +265,7 @@ dotnet test
 ## 📞 Support
 
 For deployment questions:
+
 1. Check [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
 2. Review platform-specific guide (AWS/Azure)
 3. Check Docker logs: `docker-compose logs`

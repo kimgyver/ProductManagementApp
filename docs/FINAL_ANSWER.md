@@ -3,6 +3,7 @@
 ## 📋 당신의 3가지 질문에 답변
 
 ### ❓ Q1: 새롭게 DB/테이블을 생성하는 건 아니지?
+
 **A: 아니다! 기존 Neon DB를 그대로 사용한다!**
 
 ```
@@ -14,6 +15,7 @@ Railway에서 그대로 연결
 ```
 
 **마이그레이션 불필요!**
+
 - ✅ Neon에서 Connection String 복사 (1분)
 - ✅ Railway 환경 변수에 설정 (1분)
 - ✅ 끝!
@@ -23,6 +25,7 @@ Railway에서 그대로 연결
 ---
 
 ### ❓ Q2: 배포는 무료였으면 가장 좋겠어
+
 **A: 완전 무료! $0/월**
 
 ```
@@ -44,6 +47,7 @@ Neon (DB - 기존)    : $0/월  ✅ (프리 플랜)
 ---
 
 ### ❓ Q3: 백엔드/프론트 배포하는데 어떤 형태가 최고?
+
 **A: PaaS (Platform as a Service) - Vercel + Railway**
 
 ```
@@ -86,6 +90,7 @@ Neon (DB - 기존)    : $0/월  ✅ (프리 플랜)
 **최고 추천**: **PaaS (Railway + Vercel + Neon)**
 
 이유:
+
 - ✅ 완전 무료
 - ✅ 가장 간단 (15분) ⚡
 - ✅ 자동 배포 (git push만!)
@@ -140,6 +145,7 @@ cat /Users/jinyoungkim/nextjs-repo/ecommerce-store/.env | grep DATABASE_URL
 ## 📊 배포 전후 비교
 
 ### 배포 전
+
 ```
 로컬 개발 환경 (당신의 PC)
 ├─ Frontend (localhost:5173)
@@ -150,6 +156,7 @@ cat /Users/jinyoungkim/nextjs-repo/ecommerce-store/.env | grep DATABASE_URL
 ```
 
 ### 배포 후
+
 ```
 클라우드 (무료)
 ├─ Frontend (vercel.app) - 전세계 모두 접근
@@ -235,19 +242,20 @@ cat /Users/jinyoungkim/nextjs-repo/ecommerce-store/.env | grep DATABASE_URL
 
 ## 📖 상세 가이드
 
-| 문서 | 내용 | 소요시간 |
-|------|------|---------|
-| [FREE_DEPLOYMENT.md](docs/FREE_DEPLOYMENT.md) | Vercel + Railway + Supabase 무료 배포 | 20분 |
-| [QUICK_DEPLOYMENT.md](docs/QUICK_DEPLOYMENT.md) | 5단계 빠른 배포 (상세 명령어) | 20분 |
-| [DEPLOYMENT_COMPARISON.md](docs/DEPLOYMENT_COMPARISON.md) | 4가지 배포 형태 비교 | 읽기용 |
-| [AWS_DEPLOYMENT.md](docs/AWS_DEPLOYMENT.md) | AWS 프로덕션 배포 | 60분 |
-| [AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) | Azure 프로덕션 배포 | 60분 |
+| 문서                                                      | 내용                                  | 소요시간 |
+| --------------------------------------------------------- | ------------------------------------- | -------- |
+| [FREE_DEPLOYMENT.md](docs/FREE_DEPLOYMENT.md)             | Vercel + Railway + Supabase 무료 배포 | 20분     |
+| [QUICK_DEPLOYMENT.md](docs/QUICK_DEPLOYMENT.md)           | 5단계 빠른 배포 (상세 명령어)         | 20분     |
+| [DEPLOYMENT_COMPARISON.md](docs/DEPLOYMENT_COMPARISON.md) | 4가지 배포 형태 비교                  | 읽기용   |
+| [AWS_DEPLOYMENT.md](docs/AWS_DEPLOYMENT.md)               | AWS 프로덕션 배포                     | 60분     |
+| [AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md)           | Azure 프로덕션 배포                   | 60분     |
 
 ---
 
 ## 💡 FAQ
 
 ### Q: 나중에 AWS로 옮길 수 있나?
+
 **A: 네! 매우 쉽습니다.**
 
 ```
@@ -267,6 +275,7 @@ AWS (프로덕션)
 ---
 
 ### Q: Supabase는 영구 무료인가?
+
 **A: 프리 플랜은 영구 무료 (하지만 Neon이 더 나음)**
 
 ```
@@ -290,6 +299,7 @@ Supabase 프리 플랜:
 ---
 
 ### Q: Railway $5 크레딧은 얼마나 쓰임?
+
 **A: 일반적으로 충분합니다**
 
 ```
@@ -303,6 +313,7 @@ Railway 비용 시뮬레이션:
 ---
 
 ### Q: 배포 실패하면?
+
 **A: 쉽게 수정 가능**
 
 ```
@@ -323,18 +334,19 @@ Railway 비용 시뮬레이션:
 ---
 
 ### Q: 기존 Neon DB 데이터 안 나오면?
+
 **A: Connection String 또는 마이그레이션 확인**
 
 ```
 확인 사항:
 1. Railway의 ConnectionStrings__DefaultConnection
    → 정확히 복사되었는가?
-   
+
 2. Neon 웹 대시보드에서 데이터 확인
    → https://console.neon.tech
    → 프로젝트 > SQL Editor
    → SELECT * FROM "Products";
-   
+
 3. EF Core 마이그레이션
    → 마이그레이션 실행 금지 (스키마 충돌)
    → Neon의 기존 스키마 그대로 사용
@@ -368,7 +380,8 @@ Railway 비용 시뮬레이션:
 └────────────────────────────────────────┘
 ```
 
-**다음 단계**: 
+**다음 단계**:
+
 1. [QUICK_DEPLOYMENT.md](docs/QUICK_DEPLOYMENT.md) 열기
 2. 4단계 따라하기
 3. 15분 후 배포 완료! 🚀

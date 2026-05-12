@@ -35,7 +35,7 @@ public class OrdersController : ControllerBase
       return NotFound(new { error = "Order not found" });
 
     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-    
+
     // Check if user owns this order or is admin
     if (order.UserId != userId && !User.IsInRole("admin"))
       return Forbid();
@@ -50,7 +50,7 @@ public class OrdersController : ControllerBase
   {
     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
     var orders = await _queryService.GetUserOrdersAsync(userId);
-    
+
     return Ok(orders.Select(MapOrderToDto).ToList());
   }
 
@@ -75,9 +75,9 @@ public class OrdersController : ControllerBase
     {
       var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
       var order = await _commandService.CreateOrderAsync(userId, dto);
-      
+
       _logger.LogInformation("Order created successfully: {OrderId} for user {UserId}", order.Id, userId);
-      
+
       return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, MapOrderToDto(order));
     }
     catch (InvalidOperationException ex)
@@ -125,13 +125,13 @@ public class OrdersController : ControllerBase
         return NotFound(new { error = "Order not found" });
 
       var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-      
+
       // Only order owner or admin can cancel
       if (order.UserId != userId && !User.IsInRole("admin"))
         return Forbid();
 
       var cancelledOrder = await _commandService.CancelOrderAsync(id, userId, dto.Reason);
-      
+
       _logger.LogInformation("Order {OrderId} cancelled by user {UserId}", id, userId);
       return Ok(MapOrderToDto(cancelledOrder!));
     }
@@ -159,13 +159,13 @@ public class OrdersController : ControllerBase
         return NotFound(new { error = "Order not found" });
 
       var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-      
+
       // Only order owner or admin can request refund
       if (order.UserId != userId && !User.IsInRole("admin"))
         return Forbid();
 
       var refundOrder = await _commandService.RequestRefundAsync(id, dto.Reason);
-      
+
       _logger.LogInformation("Refund requested for order {OrderId} by user {UserId}", id, userId);
       return Ok(MapOrderToDto(refundOrder!));
     }

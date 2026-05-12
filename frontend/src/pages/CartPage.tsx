@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import type { Cart, CartItem } from '../types';
-import apiClient from '../api/client';
-import { useAuth } from '../hooks/useAuth';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import type { Cart, CartItem } from "../types";
+import apiClient from "../api/client";
+import { useAuth } from "../hooks/useAuth";
 
 export const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
     fetchCart();
@@ -21,10 +21,10 @@ export const CartPage: React.FC = () => {
 
   const fetchCart = async () => {
     try {
-      const response = await apiClient.get('/cart');
+      const response = await apiClient.get("/cart");
       setCart(response.data);
     } catch (err) {
-      setError('Failed to load cart');
+      setError("Failed to load cart");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -36,7 +36,7 @@ export const CartPage: React.FC = () => {
       await apiClient.put(`/cart/items/${itemId}`, { quantity });
       await fetchCart();
     } catch (err) {
-      setError('Failed to update cart');
+      setError("Failed to update cart");
       console.error(err);
     }
   };
@@ -46,23 +46,23 @@ export const CartPage: React.FC = () => {
       await apiClient.delete(`/cart/items/${itemId}`);
       await fetchCart();
     } catch (err) {
-      setError('Failed to remove item');
+      setError("Failed to remove item");
       console.error(err);
     }
   };
 
   const clearCart = async () => {
     try {
-      await apiClient.delete('/cart');
+      await apiClient.delete("/cart");
       await fetchCart();
     } catch (err) {
-      setError('Failed to clear cart');
+      setError("Failed to clear cart");
       console.error(err);
     }
   };
 
   const handleCheckout = () => {
-    navigate('/checkout');
+    navigate("/checkout");
   };
 
   if (isLoading) {
@@ -84,7 +84,7 @@ export const CartPage: React.FC = () => {
           <div className="text-center py-12 bg-white rounded-lg shadow">
             <p className="text-xl text-gray-600 mb-6">Your cart is empty</p>
             <button
-              onClick={() => navigate('/products')}
+              onClick={() => navigate("/products")}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Continue Shopping
@@ -96,9 +96,14 @@ export const CartPage: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow overflow-hidden">
                 {cart.items.map((item: CartItem) => (
-                  <div key={item.id} className="p-6 border-b flex items-center justify-between">
+                  <div
+                    key={item.id}
+                    className="p-6 border-b flex items-center justify-between"
+                  >
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800">{item.product?.name}</h3>
+                      <h3 className="font-semibold text-gray-800">
+                        {item.product?.name}
+                      </h3>
                       <p className="text-sm text-gray-600">
                         ${item.product?.price.toFixed(2)}
                       </p>
@@ -107,14 +112,23 @@ export const CartPage: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                          onClick={() =>
+                            updateQuantity(
+                              item.id,
+                              Math.max(1, item.quantity - 1)
+                            )
+                          }
                           className="px-3 py-1 border rounded hover:bg-gray-100"
                         >
                           -
                         </button>
-                        <span className="px-4 py-1 border rounded">{item.quantity}</span>
+                        <span className="px-4 py-1 border rounded">
+                          {item.quantity}
+                        </span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity + 1)
+                          }
                           className="px-3 py-1 border rounded hover:bg-gray-100"
                         >
                           +
@@ -136,12 +150,16 @@ export const CartPage: React.FC = () => {
             {/* Order Summary */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow p-6 sticky top-4">
-                <h2 className="text-xl font-semibold text-gray-800 mb-6">Order Summary</h2>
+                <h2 className="text-xl font-semibold text-gray-800 mb-6">
+                  Order Summary
+                </h2>
 
                 <div className="space-y-4 mb-6 border-b pb-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="font-semibold">${(cart.totalPrice).toFixed(2)}</span>
+                    <span className="font-semibold">
+                      ${cart.totalPrice.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Shipping</span>
@@ -155,7 +173,7 @@ export const CartPage: React.FC = () => {
 
                 <div className="flex justify-between text-lg font-bold mb-6">
                   <span>Total</span>
-                  <span>${(cart.totalPrice).toFixed(2)}</span>
+                  <span>${cart.totalPrice.toFixed(2)}</span>
                 </div>
 
                 <button

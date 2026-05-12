@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 export const Navigation: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -8,7 +8,7 @@ export const Navigation: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -25,7 +25,10 @@ export const Navigation: React.FC = () => {
 
           {isAuthenticated ? (
             <>
-              <Link to="/cart" className="text-gray-700 hover:text-blue-600 relative">
+              <Link
+                to="/cart"
+                className="text-gray-700 hover:text-blue-600 relative"
+              >
                 Cart
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                   0
@@ -36,8 +39,11 @@ export const Navigation: React.FC = () => {
                 Orders
               </Link>
 
-              {user?.role === 'admin' && (
-                <Link to="/admin" className="text-gray-700 hover:text-blue-600 font-semibold text-blue-600">
+              {user?.role === "admin" && (
+                <Link
+                  to="/admin"
+                  className="text-gray-700 hover:text-blue-600 font-semibold text-blue-600"
+                >
                   Admin
                 </Link>
               )}
@@ -57,7 +63,10 @@ export const Navigation: React.FC = () => {
               <Link to="/login" className="text-gray-700 hover:text-blue-600">
                 Login
               </Link>
-              <Link to="/register" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              <Link
+                to="/register"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
                 Register
               </Link>
             </>

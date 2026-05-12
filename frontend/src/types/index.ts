@@ -3,7 +3,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  role: 'customer' | 'admin' | 'distributor';
+  role: "customer" | "admin" | "distributor";
   verified: boolean;
   createdAt: string;
   defaultShippingAddress1?: string;

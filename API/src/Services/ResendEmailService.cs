@@ -18,10 +18,10 @@ public class ResendEmailService : IEmailService
     try
     {
       _logger.LogInformation("[Email] Welcome email prepared for {Email} ({Name})", email, name);
-      return await Task.FromResult(new EmailSendResult 
-      { 
-        Success = true, 
-        MessageId = Guid.NewGuid().ToString() 
+      return await Task.FromResult(new EmailSendResult
+      {
+        Success = true,
+        MessageId = Guid.NewGuid().ToString()
       });
     }
     catch (Exception ex)
@@ -35,12 +35,12 @@ public class ResendEmailService : IEmailService
   {
     try
     {
-      _logger.LogInformation("[Email] Order confirmation email prepared - Order: {OrderNumber}, Email: {Email}, Total: {Total}", 
+      _logger.LogInformation("[Email] Order confirmation email prepared - Order: {OrderNumber}, Email: {Email}, Total: {Total}",
         orderNumber, email, totalAmount);
-      return await Task.FromResult(new EmailSendResult 
-      { 
-        Success = true, 
-        MessageId = Guid.NewGuid().ToString() 
+      return await Task.FromResult(new EmailSendResult
+      {
+        Success = true,
+        MessageId = Guid.NewGuid().ToString()
       });
     }
     catch (Exception ex)
@@ -54,12 +54,12 @@ public class ResendEmailService : IEmailService
   {
     try
     {
-      _logger.LogInformation("[Email] Payment reminder email prepared - PO: {PoNumber}, Email: {Email}, DueDate: {DueDate}", 
+      _logger.LogInformation("[Email] Payment reminder email prepared - PO: {PoNumber}, Email: {Email}, DueDate: {DueDate}",
         poNumber, email, dueDate.ToString("yyyy-MM-dd"));
-      return await Task.FromResult(new EmailSendResult 
-      { 
-        Success = true, 
-        MessageId = Guid.NewGuid().ToString() 
+      return await Task.FromResult(new EmailSendResult
+      {
+        Success = true,
+        MessageId = Guid.NewGuid().ToString()
       });
     }
     catch (Exception ex)
@@ -74,10 +74,10 @@ public class ResendEmailService : IEmailService
     try
     {
       _logger.LogInformation("[Email] Custom email prepared - To: {To}, Subject: {Subject}", to, subject);
-      return await Task.FromResult(new EmailSendResult 
-      { 
-        Success = true, 
-        MessageId = Guid.NewGuid().ToString() 
+      return await Task.FromResult(new EmailSendResult
+      {
+        Success = true,
+        MessageId = Guid.NewGuid().ToString()
       });
     }
     catch (Exception ex)

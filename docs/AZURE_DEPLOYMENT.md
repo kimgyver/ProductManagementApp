@@ -303,6 +303,7 @@ az webapp config ssl bind \
 ## Security Best Practices
 
 1. Use Azure Key Vault for secrets
+
 ```bash
 az keyvault create \
   --resource-group ecommerce-rg \

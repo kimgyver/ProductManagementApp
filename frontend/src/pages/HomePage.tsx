@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 export const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -40,7 +40,9 @@ export const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center">
             <div className="text-4xl mb-4">📦</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Fast Delivery</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Fast Delivery
+            </h3>
             <p className="text-gray-600">
               Get your orders delivered quickly and safely to your doorstep
             </p>
@@ -48,7 +50,9 @@ export const HomePage: React.FC = () => {
 
           <div className="bg-white p-8 rounded-lg shadow-lg text-center">
             <div className="text-4xl mb-4">💳</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Secure Payments</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Secure Payments
+            </h3>
             <p className="text-gray-600">
               Your payments are protected with the latest security technology
             </p>
@@ -56,7 +60,9 @@ export const HomePage: React.FC = () => {
 
           <div className="bg-white p-8 rounded-lg shadow-lg text-center">
             <div className="text-4xl mb-4">🛒</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Easy Shopping</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Easy Shopping
+            </h3>
             <p className="text-gray-600">
               Browse, compare, and purchase with our intuitive interface
             </p>
@@ -65,7 +71,9 @@ export const HomePage: React.FC = () => {
 
         {/* Featured Products Section */}
         <div className="mt-20">
-          <h2 className="text-3xl font-bold text-gray-800 mb-8">Featured Products</h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-8">
+            Featured Products
+          </h2>
           <div className="bg-white p-12 rounded-lg shadow-lg text-center">
             <p className="text-gray-600 mb-6">
               Browse our collection of popular products

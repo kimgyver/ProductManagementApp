@@ -26,7 +26,7 @@ public class CartController : ControllerBase
   public async Task<ActionResult<object>> GetCart()
   {
     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-    
+
     var cart = await _context.Carts
       .Include(c => c.Items)
       .ThenInclude(ci => ci.Product)
@@ -68,7 +68,7 @@ public class CartController : ControllerBase
     try
     {
       var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-      
+
       var product = await _context.Products.FindAsync(dto.ProductId);
       if (product == null)
         return NotFound(new { error = "Product not found" });
@@ -128,7 +128,7 @@ public class CartController : ControllerBase
     try
     {
       var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-      
+
       var cartItem = await _context.CartItems
         .Include(ci => ci.Cart)
         .FirstOrDefaultAsync(ci => ci.Id == itemId);
@@ -161,7 +161,7 @@ public class CartController : ControllerBase
     try
     {
       var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-      
+
       var cartItem = await _context.CartItems
         .Include(ci => ci.Cart)
         .FirstOrDefaultAsync(ci => ci.Id == itemId);
@@ -194,7 +194,7 @@ public class CartController : ControllerBase
     try
     {
       var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-      
+
       var cart = await _context.Carts
         .Include(c => c.Items)
         .FirstOrDefaultAsync(c => c.UserId == userId);

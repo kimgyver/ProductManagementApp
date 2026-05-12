@@ -54,6 +54,7 @@ cat /Users/jinyoungkim/nextjs-repo/ecommerce-store/.env | grep DATABASE_URL
 ```
 
 **Neon Connection String 포맷:**
+
 ```
 postgresql://USERNAME:PASSWORD@HOST/DATABASE?sslmode=require&options=...
 ```
@@ -100,7 +101,7 @@ Email__FromAddress=noreply@yourdomain.com
 Cors__AllowedOrigins=https://your-app.vercel.app
 ```
 
-**중요**: ConnectionStrings__DefaultConnection에 2단계의 Neon Connection String을 그대로 붙여넣기
+**중요**: ConnectionStrings\_\_DefaultConnection에 2단계의 Neon Connection String을 그대로 붙여넣기
 
 #### 3-3. 배포 설정
 
@@ -120,6 +121,8 @@ Railway Dashboard에서:
 1. "Settings" > "Networking"
 2. "Generate Domain" 클릭
 3. Domain 복사: https://your-api-xxxxx.up.railway.app
+productmanagementapp-production.up.railway.app
+
 
 API 테스트:
 curl https://your-api-xxxxx.up.railway.app/api/products
@@ -216,16 +219,17 @@ Vercel (프론트 배포) ← 환경변수로 설정
 
 ## 🚀 배포 시간 단축
 
-**이전 방식 (Supabase)**: 
+**이전 방식 (Supabase)**:
+
 - Supabase 프로젝트 생성: 5분
 - DB 마이그레이션: 3~5분
 - 총 배포: 20분
 
 **새로운 방식 (Neon 직접)**:
+
 - Neon 프로젝트 준비: 0분 (이미 있음!)
 - Connection String 복사: 1분
 - 총 배포: **15분** ⚡ (5분 단축!)
-
 
 ---
 
@@ -324,14 +328,15 @@ npm run preview
 
 ## 📊 배포 비용 최종 확인
 
-| 서비스 | 프리 티어 | 비용 |
-|--------|----------|------|
-| Vercel | 무제한 배포 | $0 |
-| Railway | $5/월 크레딧 | $0 (크레딧으로 충당) |
-| Neon | 기존 DB (프리 플랜) | $0 |
-| **총계** | | **$0** |
+| 서비스   | 프리 티어           | 비용                 |
+| -------- | ------------------- | -------------------- |
+| Vercel   | 무제한 배포         | $0                   |
+| Railway  | $5/월 크레딧        | $0 (크레딧으로 충당) |
+| Neon     | 기존 DB (프리 플랜) | $0                   |
+| **총계** |                     | **$0**               |
 
 **Neon 프리 플랜:**
+
 - ✅ 1 프로젝트
 - ✅ 3GB 스토리지
 - ✅ 700 컴퓨트 시간/월
@@ -374,6 +379,7 @@ npm run preview
 ## 📞 지원
 
 문제가 있으면:
+
 1. Railway 로그 확인
 2. Vercel 로그 확인
 3. Neon Connection String 확인
