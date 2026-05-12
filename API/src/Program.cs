@@ -12,6 +12,10 @@ try
 {
 
     var builder = WebApplication.CreateBuilder(args);
+    var allowedOrigins = (builder.Configuration["Cors:AllowedOrigins"] ?? string.Empty)
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Where(origin => !string.IsNullOrWhiteSpace(origin))
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     builder.Host.UseSerilog((context, services, configuration) =>
         configuration.ReadFrom.Configuration(context.Configuration));
@@ -44,6 +48,29 @@ try
     var app = builder.Build();
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+    app.Use(async (context, next) =>
+    {
+        var origin = context.Request.Headers.Origin.ToString();
+        var isAllowedOrigin = allowedOrigins.Count == 0 || (!string.IsNullOrWhiteSpace(origin) && allowedOrigins.Contains(origin));
+
+        if (isAllowedOrigin && !string.IsNullOrWhiteSpace(origin))
+        {
+            context.Response.Headers["Access-Control-Allow-Origin"] = origin;
+            context.Response.Headers["Vary"] = "Origin";
+            context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
+            context.Response.Headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, X-Requested-With";
+            context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
+        }
+
+        if (HttpMethods.IsOptions(context.Request.Method))
+        {
+            context.Response.StatusCode = StatusCodes.Status204NoContent;
+            return;
+        }
+
+        await next();
+    });
 
     if (app.Environment.IsDevelopment())
     {
