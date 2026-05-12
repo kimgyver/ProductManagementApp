@@ -162,7 +162,7 @@ Email__ResendApiKey=your-api-key
 ### Frontend (.env)
 
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=https://productmanagementapp-production.up.railway.app/api
 ```
 
 ## Deployment Options
