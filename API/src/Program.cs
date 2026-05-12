@@ -22,6 +22,7 @@ try
 
     builder.Services.AddCustomServices();
     builder.Services.ConfigureAuthentication(builder.Configuration);
+    builder.Services.ConfigureCors(builder.Configuration);
     builder.Services.ConfigureDatabase(builder.Configuration);
     builder.Services.ConfigureSwagger();
 
@@ -50,6 +51,7 @@ try
         app.UseSwaggerUI();
     }
 
+    app.UseCors("FrontendCors");
     app.UseSession();
     app.UseAuthentication();
     app.UseAuthorization();

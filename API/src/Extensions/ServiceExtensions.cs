@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Text;
 using API.Services;
 using API.Infrastructure;
+using System.Linq;
 
 namespace API.Extensions;
 
@@ -69,6 +70,34 @@ public static class ServiceExtensions
     {
       var connectionString = configuration.GetConnectionString("DefaultConnection");
       options.UseNpgsql(connectionString);
+    });
+  }
+
+  public static void ConfigureCors(this IServiceCollection services, IConfiguration configuration)
+  {
+    var configuredOrigins = configuration["Cors:AllowedOrigins"];
+    var origins = configuredOrigins?
+      .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+      .Where(origin => !string.IsNullOrWhiteSpace(origin))
+      .ToArray() ?? Array.Empty<string>();
+
+    services.AddCors(options =>
+    {
+      options.AddPolicy("FrontendCors", policy =>
+      {
+        if (origins.Length > 0)
+        {
+          policy.WithOrigins(origins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+          return;
+        }
+
+        policy.AllowAnyOrigin()
+          .AllowAnyHeader()
+          .AllowAnyMethod();
+      });
     });
   }
 
