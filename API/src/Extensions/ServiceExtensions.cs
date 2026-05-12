@@ -8,6 +8,7 @@ using System.Text;
 using API.Services;
 using API.Infrastructure;
 using System.Linq;
+using Npgsql;
 
 namespace API.Extensions;
 
@@ -68,9 +69,80 @@ public static class ServiceExtensions
   {
     services.AddDbContext<ApplicationDbContext>(options =>
     {
-      var connectionString = configuration.GetConnectionString("DefaultConnection");
+      var rawConnectionString = configuration.GetConnectionString("DefaultConnection")
+        ?? configuration["ConnectionStrings__DefaultConnection"]
+        ?? configuration["DATABASE_URL"];
+
+      if (string.IsNullOrWhiteSpace(rawConnectionString))
+      {
+        throw new InvalidOperationException("Database connection string is missing. Set ConnectionStrings__DefaultConnection or DATABASE_URL.");
+      }
+
+      var connectionString = NormalizeConnectionString(rawConnectionString);
       options.UseNpgsql(connectionString);
     });
+  }
+
+  private static string NormalizeConnectionString(string rawConnectionString)
+  {
+    var value = rawConnectionString.Trim().Trim('"');
+
+    if (!(value.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase)
+      || value.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)))
+    {
+      return value;
+    }
+
+    if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+    {
+      return value;
+    }
+
+    var builder = new NpgsqlConnectionStringBuilder
+    {
+      Host = uri.Host,
+      Port = uri.IsDefaultPort ? 5432 : uri.Port,
+      Database = uri.AbsolutePath.Trim('/'),
+      SslMode = SslMode.Require,
+      TrustServerCertificate = true
+    };
+
+    if (!string.IsNullOrWhiteSpace(uri.UserInfo))
+    {
+      var authParts = uri.UserInfo.Split(':', 2);
+      builder.Username = Uri.UnescapeDataString(authParts[0]);
+      if (authParts.Length > 1)
+      {
+        builder.Password = Uri.UnescapeDataString(authParts[1]);
+      }
+    }
+
+    var query = uri.Query.TrimStart('?');
+    if (!string.IsNullOrWhiteSpace(query))
+    {
+      var pairs = query.Split('&', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+      foreach (var pair in pairs)
+      {
+        var kv = pair.Split('=', 2);
+        var key = Uri.UnescapeDataString(kv[0]).Trim();
+        var val = kv.Length > 1 ? Uri.UnescapeDataString(kv[1]).Trim() : string.Empty;
+
+        if (key.Equals("sslmode", StringComparison.OrdinalIgnoreCase))
+        {
+          if (string.IsNullOrWhiteSpace(val))
+          {
+            val = "require";
+          }
+
+          if (Enum.TryParse<SslMode>(val, true, out var sslMode))
+          {
+            builder.SslMode = sslMode;
+          }
+        }
+      }
+    }
+
+    return builder.ConnectionString;
   }
 
   public static void ConfigureCors(this IServiceCollection services, IConfiguration configuration)
