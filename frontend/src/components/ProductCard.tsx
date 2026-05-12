@@ -1,15 +1,49 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import type { Product } from "../types";
+import apiClient from "../api/client";
+import { useAuth } from "../hooks/useAuth";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [isAdding, setIsAdding] = useState(false);
+  const [feedback, setFeedback] = useState("");
+
   const discountPercent =
     Math.random() < 0.3 ? Math.floor(Math.random() * 30) + 10 : 0;
   const discountedPrice = product.price * (1 - discountPercent / 100);
+
+  const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setIsAdding(true);
+      setFeedback("");
+      await apiClient.post("/cart/items", {
+        productId: product.id,
+        quantity: 1
+      });
+      setFeedback("Added to cart");
+    } catch (err) {
+      console.error(err);
+      setFeedback("Failed to add item");
+    } finally {
+      setIsAdding(false);
+      window.setTimeout(() => setFeedback(""), 1500);
+    }
+  };
 
   return (
     <Link
@@ -65,13 +99,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         <button
           className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          onClick={e => {
-            e.preventDefault();
-            // Will implement cart functionality
-          }}
+          onClick={handleAddToCart}
+          disabled={isAdding || product.stock === 0}
         >
-          Add to Cart
+          {isAdding ? "Adding..." : "Add to Cart"}
         </button>
+        {feedback && <p className="text-xs text-center mt-2 text-gray-600">{feedback}</p>}
       </div>
 
       {product.stock === 0 && (

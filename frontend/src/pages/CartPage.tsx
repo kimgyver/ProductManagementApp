@@ -102,10 +102,10 @@ export const CartPage: React.FC = () => {
                   >
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-800">
-                        {item.product?.name}
+                        {item.product?.name || item.productName || "Product"}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        ${item.product?.price.toFixed(2)}
+                        ${((item.product?.price ?? item.price) || 0).toFixed(2)}
                       </p>
                     </div>
 
