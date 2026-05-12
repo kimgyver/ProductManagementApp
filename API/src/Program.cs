@@ -2,6 +2,8 @@ using Amazon.SQS;
 using Amazon.Extensions.NETCore.Setup;
 using API.Extensions;
 using API.Middleware;
+using API.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -46,6 +48,12 @@ try
     builder.Services.AddAWSService<IAmazonSQS>();
 
     var app = builder.Build();
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 
