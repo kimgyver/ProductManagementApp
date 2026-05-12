@@ -104,7 +104,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         >
           {isAdding ? "Adding..." : "Add to Cart"}
         </button>
-        {feedback && <p className="text-xs text-center mt-2 text-gray-600">{feedback}</p>}
+        {feedback && (
+          <p className="text-xs text-center mt-2 text-gray-600">{feedback}</p>
+        )}
       </div>
 
       {product.stock === 0 && (
