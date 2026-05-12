@@ -42,7 +42,7 @@ public class UserRepository : IUserRepository
         })
         .ToListAsync();
     }
-    catch (PostgresException ex) when (ex.SqlState == "42P01" || ex.SqlState == "42703" || ex.SqlState == "22P02")
+    catch (Exception ex) when (IsLegacySchemaMismatch(ex))
     {
       return await GetAllUsersFromLegacySchemaAsync();
     }
@@ -64,10 +64,25 @@ public class UserRepository : IUserRepository
         })
         .FirstOrDefaultAsync();
     }
-    catch (PostgresException ex) when (ex.SqlState == "42P01" || ex.SqlState == "42703" || ex.SqlState == "22P02")
+    catch (Exception ex) when (IsLegacySchemaMismatch(ex))
     {
       return await GetUserForLoginFromLegacySchemaAsync(email);
     }
+  }
+
+  private static bool IsLegacySchemaMismatch(Exception ex)
+  {
+    if (ex is PostgresException pg && (pg.SqlState == "42P01" || pg.SqlState == "42703" || pg.SqlState == "22P02"))
+    {
+      return true;
+    }
+
+    if (ex.InnerException != null)
+    {
+      return IsLegacySchemaMismatch(ex.InnerException);
+    }
+
+    return false;
   }
 
   private async Task<User?> GetUserForLoginFromLegacySchemaAsync(string email)

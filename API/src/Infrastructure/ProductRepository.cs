@@ -19,10 +19,25 @@ public class ProductRepository : IProductRepository
     {
       return await _context.Products.ToListAsync();
     }
-    catch (PostgresException ex) when (ex.SqlState == "42P01" || ex.SqlState == "42703" || ex.SqlState == "22P02")
+    catch (Exception ex) when (IsLegacySchemaMismatch(ex))
     {
       return await GetAllProductsFromLegacySchemaAsync();
     }
+  }
+
+  private static bool IsLegacySchemaMismatch(Exception ex)
+  {
+    if (ex is PostgresException pg && (pg.SqlState == "42P01" || pg.SqlState == "42703" || pg.SqlState == "22P02"))
+    {
+      return true;
+    }
+
+    if (ex.InnerException != null)
+    {
+      return IsLegacySchemaMismatch(ex.InnerException);
+    }
+
+    return false;
   }
 
   public async Task<Product?> GetProductByIdAsync(int id)
