@@ -13,6 +13,6 @@ public class PasswordHasherService : IPasswordHasherService
 
   public bool VerifyPassword(string hashedPassword, string password)
   {
-    return PasswordHasher.VerifyPassword(hashedPassword, password);
+    return PasswordHasher.VerifyPassword(password, hashedPassword);
   }
 }
