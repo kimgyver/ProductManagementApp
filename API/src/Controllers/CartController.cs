@@ -70,9 +70,8 @@ public class CartController : ControllerBase
       if (string.IsNullOrWhiteSpace(userKey))
         return Unauthorized(new { error = "Invalid user context" });
 
-      var product = await _productQueryService.GetProductByIdAsync(dto.ProductId);
-      if (product == null)
-        return NotFound(new { error = "Product not found" });
+      if (dto.ProductId <= 0)
+        return BadRequest(new { error = "Invalid product id" });
 
       var cart = GetCartFromSession(userKey);
 
