@@ -87,6 +87,20 @@ public static class ServiceExtensions
   {
     var value = rawConnectionString.Trim().Trim('"');
 
+    // Railway env values can accidentally include line breaks or extra pasted lines.
+    // Keep the first non-empty line/token so Npgsql receives only the actual connection string.
+    if (value.Contains('\n') || value.Contains('\r'))
+    {
+      value = value
+        .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .FirstOrDefault() ?? value;
+    }
+
+    if (value.Contains(' '))
+    {
+      value = value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault() ?? value;
+    }
+
     if (!(value.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase)
       || value.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)))
     {
