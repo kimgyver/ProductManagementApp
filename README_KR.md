@@ -128,6 +128,14 @@ ASP.NET Core(.NET 8) 백엔드와 React(TypeScript) 프론트엔드로 구성된
 - API URL 형식: https://productmanagementapp-production.up.railway.app
 - DB: Neon PostgreSQL (기존 데이터 유지)
 
+### 6.1 Docker 사용 범위
+
+- Docker는 주로 API 백엔드의 Railway 배포와 로컬 통합 실행용으로 사용합니다.
+- 프론트엔드는 Vercel에 배포하므로 운영 배포에서는 Docker가 필요하지 않습니다.
+- 운영 DB는 Neon PostgreSQL을 그대로 사용하므로 DB 컨테이너도 운영 배포에는 포함되지 않습니다.
+- `docker-compose.yml`의 PostgreSQL 서비스는 로컬 개발 환경용입니다.
+- 즉, 이 프로젝트에서 Docker가 사실상 필요한 핵심은 백엔드입니다.
+
 ## 7. 테스트 가능한 사용자 계정
 
 - 고객 계정
