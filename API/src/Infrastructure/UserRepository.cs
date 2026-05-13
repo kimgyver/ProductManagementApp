@@ -64,6 +64,14 @@ public class UserRepository : IUserRepository
     var insertColumns = new List<string>();
     var values = new List<object?>();
 
+    var idColumn = columns.FirstOrDefault(c => c.Equals("id", StringComparison.OrdinalIgnoreCase));
+    if (idColumn != null)
+    {
+      var nextId = await GetNextLegacyUserIdAsync(connection, idColumn);
+      insertColumns.Add(idColumn);
+      values.Add(nextId);
+    }
+
     AddIfPresent(columns, insertColumns, values, "email", user.Email);
     AddIfPresent(columns, insertColumns, values, "username", user.Username);
     AddIfPresent(columns, insertColumns, values, "name", user.Username);
@@ -158,6 +166,20 @@ public class UserRepository : IUserRepository
 
     var scalar = await command.ExecuteScalarAsync();
     return scalar != null && scalar != DBNull.Value;
+  }
+
+  private static async Task<int> GetNextLegacyUserIdAsync(System.Data.Common.DbConnection connection, string idColumn)
+  {
+    await using var command = connection.CreateCommand();
+    command.CommandText = $"SELECT COALESCE(MAX(\"{idColumn}\"), 0) + 1 FROM \"User\"";
+
+    var scalar = await command.ExecuteScalarAsync();
+    if (scalar == null || scalar == DBNull.Value)
+    {
+      return 1;
+    }
+
+    return Convert.ToInt32(scalar);
   }
 
   public async Task<IEnumerable<User>> GetAllUsersAsync()
