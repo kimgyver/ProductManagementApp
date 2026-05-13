@@ -22,6 +22,11 @@ public class UserRepository : IUserRepository
       await _context.Users.AddAsync(user);
       await _context.SaveChangesAsync();
     }
+    catch (DbUpdateException ex) when (!IsDuplicateEmailError(ex))
+    {
+      _context.Entry(user).State = EntityState.Detached;
+      await AddToLegacyUserSchemaAsync(user);
+    }
     catch (Exception ex) when (IsDuplicateEmailError(ex))
     {
       throw new DuplicateEmailException($"Email `{user.Email} is already registered.`", ex);
