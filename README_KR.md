@@ -80,47 +80,47 @@ ASP.NET Core(.NET 8) 백엔드와 React(TypeScript) 프론트엔드로 구성된
 
 #### User 테이블
 
-| 컬럼 | 타입 | 제약 / 설명 |
-| --- | --- | --- |
-| Id | int | PK |
-| Username | varchar(100) | 필수 |
-| Email | varchar | 필수, Unique 인덱스 |
-| HashedPassword | varchar | 필수 |
-| IsAdmin | boolean | 기본값 false |
-| Verified | boolean | 플로우에 따라 true/false |
-| Role | varchar | 기본값 `customer` |
-| CreatedAt | timestamp | UTC 현재시각 기본값 |
-| UpdatedAt | timestamp | UTC 현재시각 기본값 |
+| 컬럼           | 타입         | 제약 / 설명              |
+| -------------- | ------------ | ------------------------ |
+| Id             | int          | PK                       |
+| Username       | varchar(100) | 필수                     |
+| Email          | varchar      | 필수, Unique 인덱스      |
+| HashedPassword | varchar      | 필수                     |
+| IsAdmin        | boolean      | 기본값 false             |
+| Verified       | boolean      | 플로우에 따라 true/false |
+| Role           | varchar      | 기본값 `customer`        |
+| CreatedAt      | timestamp    | UTC 현재시각 기본값      |
+| UpdatedAt      | timestamp    | UTC 현재시각 기본값      |
 
 #### Product 테이블
 
-| 컬럼 | 타입 | 제약 / 설명 |
-| --- | --- | --- |
-| Id | int | PK |
-| Sku | varchar(100) | 필수, Unique 인덱스 |
-| Name | varchar(100) | 필수 |
-| Description | text | 선택 |
-| Status | enum/text | `draft`, `active`, `archived` |
-| Price | decimal(18,2) | 필수 |
-| Category | varchar(50) | 선택 |
-| Stock | int | 재고 수량 |
-| CreatedAt | timestamp | UTC 현재시각 기본값 |
-| UpdatedAt | timestamp | UTC 현재시각 기본값 |
+| 컬럼        | 타입          | 제약 / 설명                   |
+| ----------- | ------------- | ----------------------------- |
+| Id          | int           | PK                            |
+| Sku         | varchar(100)  | 필수, Unique 인덱스           |
+| Name        | varchar(100)  | 필수                          |
+| Description | text          | 선택                          |
+| Status      | enum/text     | `draft`, `active`, `archived` |
+| Price       | decimal(18,2) | 필수                          |
+| Category    | varchar(50)   | 선택                          |
+| Stock       | int           | 재고 수량                     |
+| CreatedAt   | timestamp     | UTC 현재시각 기본값           |
+| UpdatedAt   | timestamp     | UTC 현재시각 기본값           |
 
 #### Order 테이블
 
-| 컬럼 | 타입 | 제약 / 설명 |
-| --- | --- | --- |
-| Id | int | PK |
-| UserId | int | FK -> User.Id |
-| Status | varchar | 주문 상태 |
-| PaymentMethod | varchar | `card` 또는 `po` |
-| TotalPrice | decimal | 주문 총액 |
-| PaymentIntentId | varchar | Unique 인덱스(Nullable) |
-| PoNumber | varchar | Unique 인덱스(Nullable) |
-| RefundStatus | varchar | 기본값 `none` |
-| CreatedAt | timestamp | UTC 현재시각 기본값 |
-| UpdatedAt | timestamp | UTC 현재시각 기본값 |
+| 컬럼            | 타입      | 제약 / 설명             |
+| --------------- | --------- | ----------------------- |
+| Id              | int       | PK                      |
+| UserId          | int       | FK -> User.Id           |
+| Status          | varchar   | 주문 상태               |
+| PaymentMethod   | varchar   | `card` 또는 `po`        |
+| TotalPrice      | decimal   | 주문 총액               |
+| PaymentIntentId | varchar   | Unique 인덱스(Nullable) |
+| PoNumber        | varchar   | Unique 인덱스(Nullable) |
+| RefundStatus    | varchar   | 기본값 `none`           |
+| CreatedAt       | timestamp | UTC 현재시각 기본값     |
+| UpdatedAt       | timestamp | UTC 현재시각 기본값     |
 
 ## 6. 현재 배포 형태
 

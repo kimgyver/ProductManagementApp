@@ -81,47 +81,47 @@ This repository contains three runtime components:
 
 #### User table
 
-| Column | Type | Constraint / Note |
-| --- | --- | --- |
-| Id | int | PK |
-| Username | varchar(100) | Required |
-| Email | varchar | Required, Unique index |
-| HashedPassword | varchar | Required |
-| IsAdmin | boolean | Default false |
-| Verified | boolean | Default false/true by flow |
-| Role | varchar | Default `customer` |
-| CreatedAt | timestamp | Default UTC now |
-| UpdatedAt | timestamp | Default UTC now |
+| Column         | Type         | Constraint / Note          |
+| -------------- | ------------ | -------------------------- |
+| Id             | int          | PK                         |
+| Username       | varchar(100) | Required                   |
+| Email          | varchar      | Required, Unique index     |
+| HashedPassword | varchar      | Required                   |
+| IsAdmin        | boolean      | Default false              |
+| Verified       | boolean      | Default false/true by flow |
+| Role           | varchar      | Default `customer`         |
+| CreatedAt      | timestamp    | Default UTC now            |
+| UpdatedAt      | timestamp    | Default UTC now            |
 
 #### Product table
 
-| Column | Type | Constraint / Note |
-| --- | --- | --- |
-| Id | int | PK |
-| Sku | varchar(100) | Required, Unique index |
-| Name | varchar(100) | Required |
-| Description | text | Optional |
-| Status | enum/text | `draft`, `active`, `archived` |
-| Price | decimal(18,2) | Required |
-| Category | varchar(50) | Optional |
-| Stock | int | Inventory count |
-| CreatedAt | timestamp | Default UTC now |
-| UpdatedAt | timestamp | Default UTC now |
+| Column      | Type          | Constraint / Note             |
+| ----------- | ------------- | ----------------------------- |
+| Id          | int           | PK                            |
+| Sku         | varchar(100)  | Required, Unique index        |
+| Name        | varchar(100)  | Required                      |
+| Description | text          | Optional                      |
+| Status      | enum/text     | `draft`, `active`, `archived` |
+| Price       | decimal(18,2) | Required                      |
+| Category    | varchar(50)   | Optional                      |
+| Stock       | int           | Inventory count               |
+| CreatedAt   | timestamp     | Default UTC now               |
+| UpdatedAt   | timestamp     | Default UTC now               |
 
 #### Order table
 
-| Column | Type | Constraint / Note |
-| --- | --- | --- |
-| Id | int | PK |
-| UserId | int | FK -> User.Id |
-| Status | varchar | Order state |
-| PaymentMethod | varchar | `card` or `po` |
-| TotalPrice | decimal | Total amount |
-| PaymentIntentId | varchar | Unique index (nullable) |
-| PoNumber | varchar | Unique index (nullable) |
-| RefundStatus | varchar | Default `none` |
-| CreatedAt | timestamp | Default UTC now |
-| UpdatedAt | timestamp | Default UTC now |
+| Column          | Type      | Constraint / Note       |
+| --------------- | --------- | ----------------------- |
+| Id              | int       | PK                      |
+| UserId          | int       | FK -> User.Id           |
+| Status          | varchar   | Order state             |
+| PaymentMethod   | varchar   | `card` or `po`          |
+| TotalPrice      | decimal   | Total amount            |
+| PaymentIntentId | varchar   | Unique index (nullable) |
+| PoNumber        | varchar   | Unique index (nullable) |
+| RefundStatus    | varchar   | Default `none`          |
+| CreatedAt       | timestamp | Default UTC now         |
+| UpdatedAt       | timestamp | Default UTC now         |
 
 ## 6. Deploy Topology (Current)
 
