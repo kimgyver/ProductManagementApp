@@ -64,7 +64,7 @@ export const ProductListPage: React.FC = () => {
               />
               {error && error.includes("Failed to load products") && (
                 <div className="mt-2 p-2 bg-red-50 border border-red-200 text-red-700 rounded">
-                  상품 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+                  Failed to load product list. Please try again later.
                 </div>
               )}
             </div>
