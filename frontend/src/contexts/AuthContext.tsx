@@ -109,6 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("authToken");
     localStorage.removeItem("userId");
     localStorage.removeItem("userData");
+    window.dispatchEvent(new Event("pm-cart-updated"));
     setUser(null);
   }, []);
 

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-
-const CART_STORAGE_KEY = "pm_cart_items";
+import { getCartStorageKey, getCurrentUserIdFromStorage } from "../utils/cartStorage";
 
 export const Navigation: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -11,7 +10,8 @@ export const Navigation: React.FC = () => {
 
   useEffect(() => {
     const syncCartCount = () => {
-      const raw = localStorage.getItem(CART_STORAGE_KEY);
+      const userId = user?.id ?? getCurrentUserIdFromStorage();
+      const raw = localStorage.getItem(getCartStorageKey(userId));
       const items = raw ? JSON.parse(raw) : [];
       const count = items.reduce((sum: number, item: { quantity?: number }) => sum + (item.quantity || 0), 0);
       setCartCount(count);
@@ -25,7 +25,7 @@ export const Navigation: React.FC = () => {
       window.removeEventListener("storage", syncCartCount);
       window.removeEventListener("pm-cart-updated", syncCartCount as EventListener);
     };
-  }, []);
+  }, [user?.id]);
 
   const handleLogout = () => {
     logout();

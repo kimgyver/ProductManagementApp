@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 import type { Cart, CartItem } from "../types";
 import apiClient from "../api/client";
 import { useAuth } from "../hooks/useAuth";
-
-const CART_STORAGE_KEY = "pm_cart_items";
+import { getCartStorageKey, getCurrentUserIdFromStorage } from "../utils/cartStorage";
 
 export const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,7 +18,7 @@ export const CartPage: React.FC = () => {
       return;
     }
     fetchCart();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, user?.id]);
 
   const fetchCart = async () => {
     const localCart = buildCartFromLocalStorage();
@@ -65,7 +64,10 @@ export const CartPage: React.FC = () => {
   };
 
   const clearCart = async () => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([]));
+    const userId = user?.id ?? getCurrentUserIdFromStorage();
+    const cartStorageKey = getCartStorageKey(userId);
+    localStorage.setItem(cartStorageKey, JSON.stringify([]));
+    window.dispatchEvent(new Event("pm-cart-updated"));
     setCart(buildCartFromLocalStorage());
 
     try {
@@ -77,7 +79,9 @@ export const CartPage: React.FC = () => {
   };
 
   const buildCartFromLocalStorage = (): Cart => {
-    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const userId = user?.id ?? getCurrentUserIdFromStorage();
+    const cartStorageKey = getCartStorageKey(userId);
+    const raw = localStorage.getItem(cartStorageKey);
     const items: CartItem[] = raw ? JSON.parse(raw) : [];
     const totalPrice = items.reduce(
       (sum, item) => sum + (((item.product?.price ?? item.price) || 0) * item.quantity),
@@ -96,22 +100,26 @@ export const CartPage: React.FC = () => {
   };
 
   const updateLocalItemQuantity = (itemId: number, quantity: number) => {
-    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const userId = user?.id ?? getCurrentUserIdFromStorage();
+    const cartStorageKey = getCartStorageKey(userId);
+    const raw = localStorage.getItem(cartStorageKey);
     const items: CartItem[] = raw ? JSON.parse(raw) : [];
     const next = items.map(item =>
       item.id === itemId
         ? { ...item, quantity: Math.max(1, quantity), updatedAt: new Date().toISOString() }
         : item
     );
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(next));
+    localStorage.setItem(cartStorageKey, JSON.stringify(next));
     window.dispatchEvent(new Event("pm-cart-updated"));
   };
 
   const removeLocalItem = (itemId: number) => {
-    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const userId = user?.id ?? getCurrentUserIdFromStorage();
+    const cartStorageKey = getCartStorageKey(userId);
+    const raw = localStorage.getItem(cartStorageKey);
     const items: CartItem[] = raw ? JSON.parse(raw) : [];
     localStorage.setItem(
-      CART_STORAGE_KEY,
+      cartStorageKey,
       JSON.stringify(items.filter(item => item.id !== itemId))
     );
     window.dispatchEvent(new Event("pm-cart-updated"));

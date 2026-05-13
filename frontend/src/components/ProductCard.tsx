@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Product } from "../types";
 import apiClient from "../api/client";
 import { useAuth } from "../hooks/useAuth";
-
-const CART_STORAGE_KEY = "pm_cart_items";
+import { getCartStorageKey, getCurrentUserIdFromStorage } from "../utils/cartStorage";
 
 interface ProductCardProps {
   product: Product;
@@ -12,7 +11,7 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isAdding, setIsAdding] = useState(false);
   const [feedback, setFeedback] = useState("");
 
@@ -51,7 +50,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const addToLocalCart = (itemProduct: Product) => {
     const now = new Date().toISOString();
-    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const userId = user?.id ?? getCurrentUserIdFromStorage();
+    const cartStorageKey = getCartStorageKey(userId);
+    const raw = localStorage.getItem(cartStorageKey);
     const items = raw ? JSON.parse(raw) : [];
 
     const existing = items.find((it: { productId: number }) => it.productId === itemProduct.id);
@@ -70,7 +71,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       });
     }
 
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(cartStorageKey, JSON.stringify(items));
     window.dispatchEvent(new Event("pm-cart-updated"));
   };
 
