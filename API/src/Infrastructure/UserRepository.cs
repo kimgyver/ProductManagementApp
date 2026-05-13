@@ -110,9 +110,10 @@ public class UserRepository : IUserRepository
 
   private static void AddIfPresent(IReadOnlyCollection<string> availableColumns, ICollection<string> insertColumns, ICollection<object?> values, string columnName, object? value)
   {
-    if (availableColumns.Contains(columnName, StringComparer.OrdinalIgnoreCase) && !insertColumns.Contains(columnName, StringComparer.OrdinalIgnoreCase))
+    var actualColumnName = availableColumns.FirstOrDefault(c => c.Equals(columnName, StringComparison.OrdinalIgnoreCase));
+    if (actualColumnName != null && !insertColumns.Contains(actualColumnName, StringComparer.OrdinalIgnoreCase))
     {
-      insertColumns.Add(columnName);
+      insertColumns.Add(actualColumnName);
       values.Add(value);
     }
   }
