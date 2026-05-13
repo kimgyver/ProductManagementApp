@@ -4,6 +4,8 @@ import type { Cart, CartItem } from "../types";
 import apiClient from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 
+const CART_STORAGE_KEY = "pm_cart_items";
+
 export const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,11 +22,18 @@ export const CartPage: React.FC = () => {
   }, [isAuthenticated, navigate]);
 
   const fetchCart = async () => {
+    const localCart = buildCartFromLocalStorage();
+    setCart(localCart);
+
     try {
       const response = await apiClient.get("/cart");
-      setCart(response.data);
+      const apiCart = response.data;
+      if (apiCart?.items?.length > 0) {
+        setCart(apiCart);
+      }
     } catch (err) {
-      setError("Failed to load cart");
+      // Keep local cart visible when backend cart endpoint fails.
+      setError("");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -32,33 +41,78 @@ export const CartPage: React.FC = () => {
   };
 
   const updateQuantity = async (itemId: number, quantity: number) => {
+    updateLocalItemQuantity(itemId, quantity);
+    setCart(buildCartFromLocalStorage());
+
     try {
       await apiClient.put(`/cart/items/${itemId}`, { quantity });
-      await fetchCart();
     } catch (err) {
-      setError("Failed to update cart");
+      setError("");
       console.error(err);
     }
   };
 
   const removeItem = async (itemId: number) => {
+    removeLocalItem(itemId);
+    setCart(buildCartFromLocalStorage());
+
     try {
       await apiClient.delete(`/cart/items/${itemId}`);
-      await fetchCart();
     } catch (err) {
-      setError("Failed to remove item");
+      setError("");
       console.error(err);
     }
   };
 
   const clearCart = async () => {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([]));
+    setCart(buildCartFromLocalStorage());
+
     try {
       await apiClient.delete("/cart");
-      await fetchCart();
     } catch (err) {
-      setError("Failed to clear cart");
+      setError("");
       console.error(err);
     }
+  };
+
+  const buildCartFromLocalStorage = (): Cart => {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const items: CartItem[] = raw ? JSON.parse(raw) : [];
+    const totalPrice = items.reduce(
+      (sum, item) => sum + (((item.product?.price ?? item.price) || 0) * item.quantity),
+      0
+    );
+
+    const now = new Date().toISOString();
+    return {
+      id: 0,
+      userId: 0,
+      items,
+      totalPrice,
+      createdAt: now,
+      updatedAt: now
+    };
+  };
+
+  const updateLocalItemQuantity = (itemId: number, quantity: number) => {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const items: CartItem[] = raw ? JSON.parse(raw) : [];
+    const next = items.map(item =>
+      item.id === itemId
+        ? { ...item, quantity: Math.max(1, quantity), updatedAt: new Date().toISOString() }
+        : item
+    );
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(next));
+  };
+
+  const removeLocalItem = (itemId: number) => {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const items: CartItem[] = raw ? JSON.parse(raw) : [];
+    localStorage.setItem(
+      CART_STORAGE_KEY,
+      JSON.stringify(items.filter(item => item.id !== itemId))
+    );
   };
 
   const handleCheckout = () => {

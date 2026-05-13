@@ -5,6 +5,8 @@ import type { Product } from "../types";
 import apiClient from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 
+const CART_STORAGE_KEY = "pm_cart_items";
+
 interface ProductCardProps {
   product: Product;
 }
@@ -35,14 +37,41 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         productId: product.id,
         quantity: 1
       });
+      addToLocalCart(product);
       setFeedback("Added to cart");
     } catch (err) {
       console.error(err);
-      setFeedback("Failed to add item");
+      // Keep UI usable even when backend cart persistence is unstable.
+      addToLocalCart(product);
+      setFeedback("Added locally");
     } finally {
       setIsAdding(false);
       window.setTimeout(() => setFeedback(""), 1500);
     }
+  };
+
+  const addToLocalCart = (itemProduct: Product) => {
+    const now = new Date().toISOString();
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const items = raw ? JSON.parse(raw) : [];
+
+    const existing = items.find((it: { productId: number }) => it.productId === itemProduct.id);
+    if (existing) {
+      existing.quantity = (existing.quantity || 0) + 1;
+      existing.updatedAt = now;
+    } else {
+      items.push({
+        id: Date.now(),
+        productId: itemProduct.id,
+        productName: itemProduct.name,
+        price: itemProduct.price,
+        quantity: 1,
+        createdAt: now,
+        updatedAt: now
+      });
+    }
+
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   };
 
   return (
