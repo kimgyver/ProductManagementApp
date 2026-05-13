@@ -37,7 +37,9 @@ public class PaymentsController : ControllerBase
 
     try
     {
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      if (!TryGetUserId(out var userId))
+        return Unauthorized(new { error = "Invalid user token. Please login again." });
+
       var order = await _orderQueryService.GetOrderByIdAsync(dto.OrderId);
 
       if (order == null)
@@ -93,7 +95,9 @@ public class PaymentsController : ControllerBase
   {
     try
     {
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      if (!TryGetUserId(out var userId))
+        return Unauthorized(new { error = "Invalid user token. Please login again." });
+
       var order = await _orderQueryService.GetOrderByIdAsync(orderId);
 
       if (order == null)
@@ -122,7 +126,9 @@ public class PaymentsController : ControllerBase
   {
     try
     {
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      if (!TryGetUserId(out var userId))
+        return Unauthorized(new { error = "Invalid user token. Please login again." });
+
       var order = await _orderQueryService.GetOrderByIdAsync(orderId);
 
       if (order == null)
@@ -144,5 +150,15 @@ public class PaymentsController : ControllerBase
       _logger.LogError(ex, "Error requesting refund");
       return StatusCode(500, new { error = "Error requesting refund" });
     }
+  }
+
+  private bool TryGetUserId(out int userId)
+  {
+    userId = 0;
+
+    var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+      ?? User.FindFirst("sub")?.Value;
+
+    return int.TryParse(idClaim, out userId) && userId > 0;
   }
 }

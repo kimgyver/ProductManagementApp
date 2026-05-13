@@ -34,7 +34,8 @@ public class OrdersController : ControllerBase
     if (order == null)
       return NotFound(new { error = "Order not found" });
 
-    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+    if (!TryGetUserId(out var userId))
+      return Unauthorized(new { error = "Invalid user token. Please login again." });
 
     // Check if user owns this order or is admin
     if (order.UserId != userId && !User.IsInRole("admin"))
@@ -50,7 +51,9 @@ public class OrdersController : ControllerBase
   {
     try
     {
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      if (!TryGetUserId(out var userId))
+        return Unauthorized(new { error = "Invalid user token. Please login again." });
+
       var orders = await _queryService.GetUserOrdersAsync(userId);
 
       return Ok(orders.Select(MapOrderToDto).ToList());
@@ -84,7 +87,9 @@ public class OrdersController : ControllerBase
 
     try
     {
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      if (!TryGetUserId(out var userId))
+        return Unauthorized(new { error = "Invalid user token. Please login again." });
+
       var order = await _commandService.CreateOrderAsync(userId, dto);
 
       _logger.LogInformation("Order created successfully: {OrderId} for user {UserId}", order.Id, userId);
@@ -135,7 +140,8 @@ public class OrdersController : ControllerBase
       if (order == null)
         return NotFound(new { error = "Order not found" });
 
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      if (!TryGetUserId(out var userId))
+        return Unauthorized(new { error = "Invalid user token. Please login again." });
 
       // Only order owner or admin can cancel
       if (order.UserId != userId && !User.IsInRole("admin"))
@@ -169,7 +175,8 @@ public class OrdersController : ControllerBase
       if (order == null)
         return NotFound(new { error = "Order not found" });
 
-      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      if (!TryGetUserId(out var userId))
+        return Unauthorized(new { error = "Invalid user token. Please login again." });
 
       // Only order owner or admin can request refund
       if (order.UserId != userId && !User.IsInRole("admin"))
@@ -207,5 +214,15 @@ public class OrdersController : ControllerBase
       CreatedAt = order.CreatedAt,
       UpdatedAt = order.UpdatedAt
     };
+  }
+
+  private bool TryGetUserId(out int userId)
+  {
+    userId = 0;
+
+    var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+      ?? User.FindFirst("sub")?.Value;
+
+    return int.TryParse(idClaim, out userId) && userId > 0;
   }
 }

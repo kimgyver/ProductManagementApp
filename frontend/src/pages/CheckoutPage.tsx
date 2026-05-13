@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import type { Cart } from "../types";
 import apiClient from "../api/client";
 import { useAuth } from "../hooks/useAuth";
@@ -80,15 +81,16 @@ export const CheckoutPage: React.FC = () => {
       }
     } catch (err) {
       let errorMessage = "Checkout failed";
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (err && typeof err === "object" && "response" in err) {
-        const response = (err as any).response;
-        if (response?.data?.error) {
-          errorMessage = response.data.error;
-        } else if (response?.data?.message) {
-          errorMessage = response.data.message;
+      if (axios.isAxiosError(err)) {
+        if (typeof err.response?.data?.error === "string") {
+          errorMessage = err.response.data.error;
+        } else if (typeof err.response?.data?.message === "string") {
+          errorMessage = err.response.data.message;
+        } else {
+          errorMessage = err.message;
         }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
       }
       setError(errorMessage);
       console.error(err);
