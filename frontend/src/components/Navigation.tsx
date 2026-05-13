@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import {
   getCartStorageKey,
-  getCurrentUserIdFromStorage
+  getCurrentUserIdentityFromStorage
 } from "../utils/cartStorage";
 
 export const Navigation: React.FC = () => {
@@ -13,8 +13,8 @@ export const Navigation: React.FC = () => {
 
   useEffect(() => {
     const syncCartCount = () => {
-      const userId = user?.id ?? getCurrentUserIdFromStorage();
-      const raw = localStorage.getItem(getCartStorageKey(userId));
+      const userIdentity = user?.email ?? user?.id ?? getCurrentUserIdentityFromStorage();
+      const raw = localStorage.getItem(getCartStorageKey(userIdentity));
       const items = raw ? JSON.parse(raw) : [];
       const count = items.reduce(
         (sum: number, item: { quantity?: number }) =>
@@ -35,7 +35,7 @@ export const Navigation: React.FC = () => {
         syncCartCount as EventListener
       );
     };
-  }, [user?.id]);
+  }, [user?.id, user?.email]);
 
   const handleLogout = () => {
     logout();

@@ -41,7 +41,7 @@ public class UserQueryService : IUserQueryService
     {
       return null; // Invalid credentials
     }
-    var token = _jwtService.GenerateTokenForUser(user.Username, user.IsAdmin);
+    var token = _jwtService.GenerateTokenForUser(user);
 
     await _sessionService.GenerateSessionAsync(user.Username, user.IsAdmin);
 

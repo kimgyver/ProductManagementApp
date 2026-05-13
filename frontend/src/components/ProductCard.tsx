@@ -5,7 +5,7 @@ import apiClient from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 import {
   getCartStorageKey,
-  getCurrentUserIdFromStorage
+  getCurrentUserIdentityFromStorage
 } from "../utils/cartStorage";
 
 interface ProductCardProps {
@@ -53,8 +53,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const addToLocalCart = (itemProduct: Product) => {
     const now = new Date().toISOString();
-    const userId = user?.id ?? getCurrentUserIdFromStorage();
-    const cartStorageKey = getCartStorageKey(userId);
+    const userIdentity = user?.email ?? user?.id ?? getCurrentUserIdentityFromStorage();
+    const cartStorageKey = getCartStorageKey(userIdentity);
     const raw = localStorage.getItem(cartStorageKey);
     const items = raw ? JSON.parse(raw) : [];
 

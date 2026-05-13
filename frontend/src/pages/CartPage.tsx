@@ -5,7 +5,7 @@ import apiClient from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 import {
   getCartStorageKey,
-  getCurrentUserIdFromStorage
+  getCurrentUserIdentityFromStorage
 } from "../utils/cartStorage";
 
 export const CartPage: React.FC = () => {
@@ -21,7 +21,7 @@ export const CartPage: React.FC = () => {
       return;
     }
     fetchCart();
-  }, [isAuthenticated, navigate, user?.id]);
+  }, [isAuthenticated, navigate, user?.id, user?.email]);
 
   const fetchCart = async () => {
     const localCart = buildCartFromLocalStorage();
@@ -67,8 +67,8 @@ export const CartPage: React.FC = () => {
   };
 
   const clearCart = async () => {
-    const userId = user?.id ?? getCurrentUserIdFromStorage();
-    const cartStorageKey = getCartStorageKey(userId);
+    const userIdentity = user?.email ?? user?.id ?? getCurrentUserIdentityFromStorage();
+    const cartStorageKey = getCartStorageKey(userIdentity);
     localStorage.setItem(cartStorageKey, JSON.stringify([]));
     window.dispatchEvent(new Event("pm-cart-updated"));
     setCart(buildCartFromLocalStorage());
@@ -82,8 +82,8 @@ export const CartPage: React.FC = () => {
   };
 
   const buildCartFromLocalStorage = (): Cart => {
-    const userId = user?.id ?? getCurrentUserIdFromStorage();
-    const cartStorageKey = getCartStorageKey(userId);
+    const userIdentity = user?.email ?? user?.id ?? getCurrentUserIdentityFromStorage();
+    const cartStorageKey = getCartStorageKey(userIdentity);
     const raw = localStorage.getItem(cartStorageKey);
     const items: CartItem[] = raw ? JSON.parse(raw) : [];
     const totalPrice = items.reduce(
@@ -104,8 +104,8 @@ export const CartPage: React.FC = () => {
   };
 
   const updateLocalItemQuantity = (itemId: number, quantity: number) => {
-    const userId = user?.id ?? getCurrentUserIdFromStorage();
-    const cartStorageKey = getCartStorageKey(userId);
+    const userIdentity = user?.email ?? user?.id ?? getCurrentUserIdentityFromStorage();
+    const cartStorageKey = getCartStorageKey(userIdentity);
     const raw = localStorage.getItem(cartStorageKey);
     const items: CartItem[] = raw ? JSON.parse(raw) : [];
     const next = items.map(item =>
@@ -122,8 +122,8 @@ export const CartPage: React.FC = () => {
   };
 
   const removeLocalItem = (itemId: number) => {
-    const userId = user?.id ?? getCurrentUserIdFromStorage();
-    const cartStorageKey = getCartStorageKey(userId);
+    const userIdentity = user?.email ?? user?.id ?? getCurrentUserIdentityFromStorage();
+    const cartStorageKey = getCartStorageKey(userIdentity);
     const raw = localStorage.getItem(cartStorageKey);
     const items: CartItem[] = raw ? JSON.parse(raw) : [];
     localStorage.setItem(

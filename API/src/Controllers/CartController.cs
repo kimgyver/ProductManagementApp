@@ -198,9 +198,9 @@ public class CartController : ControllerBase
 
   private string? GetUserKey()
   {
-    return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-      ?? User.FindFirst(ClaimTypes.Name)?.Value
-      ?? User.FindFirst(ClaimTypes.Email)?.Value;
+    return User.FindFirst(ClaimTypes.Email)?.Value
+      ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+      ?? User.FindFirst(ClaimTypes.Name)?.Value;
   }
 
   private List<SessionCartItem> GetCartFromStore(string userKey)

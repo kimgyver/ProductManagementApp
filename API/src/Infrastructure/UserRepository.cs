@@ -302,7 +302,7 @@ public class UserRepository : IUserRepository
 
     return new User
     {
-      Id = 0,
+      Id = GetInt(reader, "id") ?? 0,
       Username = username,
       Email = userEmail,
       HashedPassword = passwordHash,
@@ -381,6 +381,29 @@ public class UserRepository : IUserRepository
     }
 
     return false;
+  }
+
+  private static int? GetInt(System.Data.Common.DbDataReader reader, params string[] candidateNames)
+  {
+    foreach (var name in candidateNames)
+    {
+      var ordinal = GetOrdinal(reader, name);
+      if (ordinal >= 0 && !reader.IsDBNull(ordinal))
+      {
+        var value = reader.GetValue(ordinal);
+        if (value is int i)
+        {
+          return i;
+        }
+
+        if (int.TryParse(value.ToString(), out var parsed))
+        {
+          return parsed;
+        }
+      }
+    }
+
+    return null;
   }
 
   private static int GetOrdinal(System.Data.Common.DbDataReader reader, string columnName)

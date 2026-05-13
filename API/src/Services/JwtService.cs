@@ -1,4 +1,5 @@
 using API.DTOs;
+using API.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,12 +17,15 @@ public class JwtService : IJwtService
     _configuration = configuration;
   }
 
-  public string GenerateTokenForUser(string username, bool isAdmin)
+  public string GenerateTokenForUser(User user)
   {
+    var nameIdentifier = user.Id > 0 ? user.Id.ToString() : user.Email;
     var claims = new[]
     {
-      new Claim(ClaimTypes.Name, username),
-      new Claim(ClaimTypes.Role, isAdmin ? "Admin" : "User")
+      new Claim(ClaimTypes.NameIdentifier, nameIdentifier),
+      new Claim(ClaimTypes.Email, user.Email),
+      new Claim(ClaimTypes.Name, user.Username),
+      new Claim(ClaimTypes.Role, user.IsAdmin ? "Admin" : "User")
     };
 
     var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(GetJwtSecret()));

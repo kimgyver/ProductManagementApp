@@ -11,3 +11,23 @@ export const getCartStorageKey = (userId?: number | string | null): string => {
 export const getCurrentUserIdFromStorage = (): string | null => {
   return localStorage.getItem("userId");
 };
+
+export const getCurrentUserIdentityFromStorage = (): string | null => {
+  const userDataRaw = localStorage.getItem("userData");
+  if (userDataRaw) {
+    try {
+      const userData = JSON.parse(userDataRaw) as { email?: string; id?: number | string };
+      if (userData?.email) {
+        return String(userData.email);
+      }
+
+      if (userData?.id !== undefined && userData?.id !== null) {
+        return String(userData.id);
+      }
+    } catch {
+      // Fall through to userId when userData parse fails.
+    }
+  }
+
+  return getCurrentUserIdFromStorage();
+};
