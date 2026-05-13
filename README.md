@@ -126,7 +126,7 @@ This repository contains three runtime components:
 ## 6. Deploy Topology (Current)
 
 - Frontend URL pattern: https://user-product-oder-management-app.vercel.app
-- API URL pattern: https://<api>.up.railway.app
+- API URL pattern: https://productmanagementapp-production.up.railway.app
 - DB provider: Neon PostgreSQL (existing DB reused)
 
 ## 7. Testable Accounts

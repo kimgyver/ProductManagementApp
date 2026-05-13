@@ -125,7 +125,7 @@ ASP.NET Core(.NET 8) 백엔드와 React(TypeScript) 프론트엔드로 구성된
 ## 6. 현재 배포 형태
 
 - 프론트엔드 URL 형식: https://user-product-oder-management-app.vercel.app
-- API URL 형식: https://<api>.up.railway.app
+- API URL 형식: https://productmanagementapp-production.up.railway.app
 - DB: Neon PostgreSQL (기존 데이터 유지)
 
 ## 7. 테스트 가능한 사용자 계정
