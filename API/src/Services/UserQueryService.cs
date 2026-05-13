@@ -47,4 +47,15 @@ public class UserQueryService : IUserQueryService
 
     return new { Token = token, Message = "Login is successful", User = user };
   }
+
+  public async Task<int?> GetUserIdByEmailAsync(string email)
+  {
+    if (string.IsNullOrWhiteSpace(email))
+    {
+      return null;
+    }
+
+    var user = await _userRepository.GetUserForLoginByEmailAsync(email);
+    return user?.Id;
+  }
 }

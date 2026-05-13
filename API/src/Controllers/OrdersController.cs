@@ -13,15 +13,18 @@ public class OrdersController : ControllerBase
 {
   private readonly IOrderCommandService _commandService;
   private readonly IOrderQueryService _queryService;
+  private readonly IUserQueryService _userQueryService;
   private readonly ILogger<OrdersController> _logger;
 
   public OrdersController(
     IOrderCommandService commandService,
     IOrderQueryService queryService,
+    IUserQueryService userQueryService,
     ILogger<OrdersController> logger)
   {
     _commandService = commandService;
     _queryService = queryService;
+    _userQueryService = userQueryService;
     _logger = logger;
   }
 
@@ -34,11 +37,12 @@ public class OrdersController : ControllerBase
     if (order == null)
       return NotFound(new { error = "Order not found" });
 
-    if (!TryGetUserId(out var userId))
+    var userId = await ResolveUserIdAsync();
+    if (userId == null)
       return Unauthorized(new { error = "Invalid user token. Please login again." });
 
     // Check if user owns this order or is admin
-    if (order.UserId != userId && !User.IsInRole("admin"))
+    if (order.UserId != userId.Value && !User.IsInRole("admin"))
       return Forbid();
 
     return Ok(MapOrderToDto(order));
@@ -51,10 +55,11 @@ public class OrdersController : ControllerBase
   {
     try
     {
-      if (!TryGetUserId(out var userId))
+      var userId = await ResolveUserIdAsync();
+      if (userId == null)
         return Unauthorized(new { error = "Invalid user token. Please login again." });
 
-      var orders = await _queryService.GetUserOrdersAsync(userId);
+      var orders = await _queryService.GetUserOrdersAsync(userId.Value);
 
       return Ok(orders.Select(MapOrderToDto).ToList());
     }
@@ -87,12 +92,13 @@ public class OrdersController : ControllerBase
 
     try
     {
-      if (!TryGetUserId(out var userId))
+      var userId = await ResolveUserIdAsync();
+      if (userId == null)
         return Unauthorized(new { error = "Invalid user token. Please login again." });
 
-      var order = await _commandService.CreateOrderAsync(userId, dto);
+      var order = await _commandService.CreateOrderAsync(userId.Value, dto);
 
-      _logger.LogInformation("Order created successfully: {OrderId} for user {UserId}", order.Id, userId);
+      _logger.LogInformation("Order created successfully: {OrderId} for user {UserId}", order.Id, userId.Value);
 
       return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, MapOrderToDto(order));
     }
@@ -140,16 +146,17 @@ public class OrdersController : ControllerBase
       if (order == null)
         return NotFound(new { error = "Order not found" });
 
-      if (!TryGetUserId(out var userId))
+      var userId = await ResolveUserIdAsync();
+      if (userId == null)
         return Unauthorized(new { error = "Invalid user token. Please login again." });
 
       // Only order owner or admin can cancel
-      if (order.UserId != userId && !User.IsInRole("admin"))
+      if (order.UserId != userId.Value && !User.IsInRole("admin"))
         return Forbid();
 
-      var cancelledOrder = await _commandService.CancelOrderAsync(id, userId, dto.Reason);
+      var cancelledOrder = await _commandService.CancelOrderAsync(id, userId.Value, dto.Reason);
 
-      _logger.LogInformation("Order {OrderId} cancelled by user {UserId}", id, userId);
+      _logger.LogInformation("Order {OrderId} cancelled by user {UserId}", id, userId.Value);
       return Ok(MapOrderToDto(cancelledOrder!));
     }
     catch (InvalidOperationException ex)
@@ -175,16 +182,17 @@ public class OrdersController : ControllerBase
       if (order == null)
         return NotFound(new { error = "Order not found" });
 
-      if (!TryGetUserId(out var userId))
+      var userId = await ResolveUserIdAsync();
+      if (userId == null)
         return Unauthorized(new { error = "Invalid user token. Please login again." });
 
       // Only order owner or admin can request refund
-      if (order.UserId != userId && !User.IsInRole("admin"))
+      if (order.UserId != userId.Value && !User.IsInRole("admin"))
         return Forbid();
 
       var refundOrder = await _commandService.RequestRefundAsync(id, dto.Reason);
 
-      _logger.LogInformation("Refund requested for order {OrderId} by user {UserId}", id, userId);
+      _logger.LogInformation("Refund requested for order {OrderId} by user {UserId}", id, userId.Value);
       return Ok(MapOrderToDto(refundOrder!));
     }
     catch (Exception ex)
@@ -216,13 +224,22 @@ public class OrdersController : ControllerBase
     };
   }
 
-  private bool TryGetUserId(out int userId)
+  private async Task<int?> ResolveUserIdAsync()
   {
-    userId = 0;
-
     var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
       ?? User.FindFirst("sub")?.Value;
 
-    return int.TryParse(idClaim, out userId) && userId > 0;
+    if (int.TryParse(idClaim, out var parsedUserId) && parsedUserId > 0)
+    {
+      return parsedUserId;
+    }
+
+    var email = User.FindFirst(ClaimTypes.Email)?.Value;
+    if (string.IsNullOrWhiteSpace(email))
+    {
+      return null;
+    }
+
+    return await _userQueryService.GetUserIdByEmailAsync(email);
   }
 }

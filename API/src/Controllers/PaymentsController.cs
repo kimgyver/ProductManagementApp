@@ -12,15 +12,18 @@ public class PaymentsController : ControllerBase
 {
   private readonly IPaymentService _paymentService;
   private readonly IOrderQueryService _orderQueryService;
+  private readonly IUserQueryService _userQueryService;
   private readonly ILogger<PaymentsController> _logger;
 
   public PaymentsController(
     IPaymentService paymentService,
     IOrderQueryService orderQueryService,
+    IUserQueryService userQueryService,
     ILogger<PaymentsController> logger)
   {
     _paymentService = paymentService;
     _orderQueryService = orderQueryService;
+    _userQueryService = userQueryService;
     _logger = logger;
   }
 
@@ -37,7 +40,8 @@ public class PaymentsController : ControllerBase
 
     try
     {
-      if (!TryGetUserId(out var userId))
+      var userId = await ResolveUserIdAsync();
+      if (userId == null)
         return Unauthorized(new { error = "Invalid user token. Please login again." });
 
       var order = await _orderQueryService.GetOrderByIdAsync(dto.OrderId);
@@ -46,7 +50,7 @@ public class PaymentsController : ControllerBase
         return NotFound(new { error = "Order not found" });
 
       // Check if user owns this order
-      if (order.UserId != userId && !User.IsInRole("admin"))
+      if (order.UserId != userId.Value && !User.IsInRole("admin"))
         return Forbid();
 
       // Check if order is pending payment
@@ -72,7 +76,7 @@ public class PaymentsController : ControllerBase
       if (completedOrder == null)
         return StatusCode(500, new { error = "Failed to complete payment" });
 
-      _logger.LogInformation("Payment processed for order {OrderId} by user {UserId}", dto.OrderId, userId);
+      _logger.LogInformation("Payment processed for order {OrderId} by user {UserId}", dto.OrderId, userId.Value);
 
       return Ok(new PaymentResponseDto
       {
@@ -95,7 +99,8 @@ public class PaymentsController : ControllerBase
   {
     try
     {
-      if (!TryGetUserId(out var userId))
+      var userId = await ResolveUserIdAsync();
+      if (userId == null)
         return Unauthorized(new { error = "Invalid user token. Please login again." });
 
       var order = await _orderQueryService.GetOrderByIdAsync(orderId);
@@ -103,7 +108,7 @@ public class PaymentsController : ControllerBase
       if (order == null)
         return NotFound(new { error = "Order not found" });
 
-      if (order.UserId != userId && !User.IsInRole("admin"))
+      if (order.UserId != userId.Value && !User.IsInRole("admin"))
         return Forbid();
 
       var status = await _paymentService.GetPaymentStatusAsync(orderId);
@@ -126,7 +131,8 @@ public class PaymentsController : ControllerBase
   {
     try
     {
-      if (!TryGetUserId(out var userId))
+      var userId = await ResolveUserIdAsync();
+      if (userId == null)
         return Unauthorized(new { error = "Invalid user token. Please login again." });
 
       var order = await _orderQueryService.GetOrderByIdAsync(orderId);
@@ -134,14 +140,14 @@ public class PaymentsController : ControllerBase
       if (order == null)
         return NotFound(new { error = "Order not found" });
 
-      if (order.UserId != userId && !User.IsInRole("admin"))
+      if (order.UserId != userId.Value && !User.IsInRole("admin"))
         return Forbid();
 
       if (order.Status != "paid" && order.Status != "processing" && order.Status != "shipped")
         return BadRequest(new { error = "Order cannot be refunded in its current state" });
 
       // TODO: Implement actual refund logic
-      _logger.LogInformation("Refund requested for order {OrderId} by user {UserId}", orderId, userId);
+      _logger.LogInformation("Refund requested for order {OrderId} by user {UserId}", orderId, userId.Value);
 
       return Ok(new { message = "Refund request submitted" });
     }
@@ -152,13 +158,22 @@ public class PaymentsController : ControllerBase
     }
   }
 
-  private bool TryGetUserId(out int userId)
+  private async Task<int?> ResolveUserIdAsync()
   {
-    userId = 0;
-
     var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
       ?? User.FindFirst("sub")?.Value;
 
-    return int.TryParse(idClaim, out userId) && userId > 0;
+    if (int.TryParse(idClaim, out var parsedUserId) && parsedUserId > 0)
+    {
+      return parsedUserId;
+    }
+
+    var email = User.FindFirst(ClaimTypes.Email)?.Value;
+    if (string.IsNullOrWhiteSpace(email))
+    {
+      return null;
+    }
+
+    return await _userQueryService.GetUserIdByEmailAsync(email);
   }
 }

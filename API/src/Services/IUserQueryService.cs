@@ -8,4 +8,5 @@ public interface IUserQueryService
 {
   public Task<IEnumerable<User>> GetAllUsersAsync();
   public Task<object?> AuthenticateUserAsync(UserLoginDto loginDto);
+  public Task<int?> GetUserIdByEmailAsync(string email);
 }

@@ -29,10 +29,8 @@ apiClient.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
-      // Clear auth data and redirect to login
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("userId");
-      window.location.href = "/login";
+      // Let pages handle auth errors explicitly instead of forcing navigation.
+      console.warn("Unauthorized response from API", error.response?.data);
     }
     return Promise.reject(error);
   }
