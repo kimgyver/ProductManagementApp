@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import type { Cart } from "../types";
+import type { Cart, CartItem } from "../types";
 import apiClient from "../api/client";
 import { useAuth } from "../hooks/useAuth";
+import {
+  getCartStorageKey,
+  getCurrentUserIdentityFromStorage
+} from "../utils/cartStorage";
 
 export const CheckoutPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
@@ -17,7 +21,7 @@ export const CheckoutPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,18 +30,56 @@ export const CheckoutPage: React.FC = () => {
       return;
     }
     fetchCart();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, user?.id, user?.email]);
+
+  const buildCartFromLocalStorage = (): Cart => {
+    const userIdentity =
+      user?.email ?? user?.id ?? getCurrentUserIdentityFromStorage();
+    const cartStorageKey = getCartStorageKey(userIdentity);
+    const raw = localStorage.getItem(cartStorageKey);
+    const items: CartItem[] = raw ? JSON.parse(raw) : [];
+    const totalPrice = items.reduce(
+      (sum, item) =>
+        sum + ((item.product?.price ?? item.price) || 0) * item.quantity,
+      0
+    );
+
+    const now = new Date().toISOString();
+    return {
+      id: 0,
+      userId: 0,
+      items,
+      totalPrice,
+      createdAt: now,
+      updatedAt: now
+    };
+  };
 
   const fetchCart = async () => {
+    const localCart = buildCartFromLocalStorage();
+    setCart(localCart);
+
     try {
       const response = await apiClient.get("/cart");
-      setCart(response.data);
+      const apiCart = response.data;
+      if (apiCart?.items?.length > 0) {
+        setCart(apiCart);
+      }
     } catch (err) {
-      setError("Failed to load cart");
+      // Keep local cart visible when backend cart endpoint fails.
+      setError("");
       console.error(err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const clearLocalCart = () => {
+    const userIdentity =
+      user?.email ?? user?.id ?? getCurrentUserIdentityFromStorage();
+    const cartStorageKey = getCartStorageKey(userIdentity);
+    localStorage.setItem(cartStorageKey, JSON.stringify([]));
+    window.dispatchEvent(new Event("pm-cart-updated"));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,7 +115,7 @@ export const CheckoutPage: React.FC = () => {
       });
 
       if (paymentResponse.data.success) {
-        // Clear cart and navigate to success page
+        clearLocalCart();
         await apiClient.delete("/cart");
         navigate(`/orders/${orderId}?status=success`);
       } else {
@@ -133,10 +175,8 @@ export const CheckoutPage: React.FC = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Checkout Form */}
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Shipping Address */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-2xl font-semibold text-gray-800 mb-6">
                   Shipping Address
@@ -209,7 +249,6 @@ export const CheckoutPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Payment Method */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-2xl font-semibold text-gray-800 mb-6">
                   Payment Method
@@ -264,7 +303,6 @@ export const CheckoutPage: React.FC = () => {
             </form>
           </div>
 
-          {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow p-6 sticky top-4">
               <h2 className="text-xl font-semibold text-gray-800 mb-6">
@@ -275,10 +313,15 @@ export const CheckoutPage: React.FC = () => {
                 {cart.items.map(item => (
                   <div key={item.id} className="flex justify-between text-sm">
                     <span>
-                      {item.product?.name} x{item.quantity}
+                      {item.product?.name || item.productName || "Product"} x
+                      {item.quantity}
                     </span>
                     <span>
-                      ${(item.product?.price || 0 * item.quantity).toFixed(2)}
+                      $
+                      {(
+                        ((item.product?.price ?? item.price) || 0) *
+                        item.quantity
+                      ).toFixed(2)}
                     </span>
                   </div>
                 ))}

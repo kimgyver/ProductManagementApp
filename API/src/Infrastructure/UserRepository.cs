@@ -39,7 +39,7 @@ public class UserRepository : IUserRepository
 
   private async Task AddToLegacyUserSchemaAsync(User user)
   {
-    await using var connection = _context.Database.GetDbConnection();
+    var connection = _context.Database.GetDbConnection();
     if (connection.State != System.Data.ConnectionState.Open)
     {
       await connection.OpenAsync();
@@ -274,7 +274,7 @@ public class UserRepository : IUserRepository
 
   private async Task<User?> GetUserForLoginFromLegacySchemaAsync(string email)
   {
-    await using var connection = _context.Database.GetDbConnection();
+    var connection = _context.Database.GetDbConnection();
     if (connection.State != System.Data.ConnectionState.Open)
     {
       await connection.OpenAsync();
@@ -315,7 +315,7 @@ public class UserRepository : IUserRepository
   {
     var users = new List<User>();
 
-    await using var connection = _context.Database.GetDbConnection();
+    var connection = _context.Database.GetDbConnection();
     if (connection.State != System.Data.ConnectionState.Open)
     {
       await connection.OpenAsync();

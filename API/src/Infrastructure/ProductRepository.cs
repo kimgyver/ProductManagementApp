@@ -57,7 +57,7 @@ public class ProductRepository : IProductRepository
   {
     var products = new List<Product>();
 
-    await using var connection = _context.Database.GetDbConnection();
+    var connection = _context.Database.GetDbConnection();
     if (connection.State != System.Data.ConnectionState.Open)
     {
       await connection.OpenAsync();
