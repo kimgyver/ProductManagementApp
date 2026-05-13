@@ -168,18 +168,44 @@ public class UserRepository : IUserRepository
     return scalar != null && scalar != DBNull.Value;
   }
 
-  private static async Task<int> GetNextLegacyUserIdAsync(System.Data.Common.DbConnection connection, string idColumn)
+  private static async Task<object> GetNextLegacyUserIdAsync(System.Data.Common.DbConnection connection, string idColumn)
   {
-    await using var command = connection.CreateCommand();
-    command.CommandText = $"SELECT COALESCE(MAX(\"{idColumn}\"), 0) + 1 FROM \"User\"";
+    var dataType = await GetLegacyUserIdDataTypeAsync(connection, idColumn);
 
-    var scalar = await command.ExecuteScalarAsync();
-    if (scalar == null || scalar == DBNull.Value)
+    if (dataType.Contains("int", StringComparison.OrdinalIgnoreCase)
+        || dataType.Equals("numeric", StringComparison.OrdinalIgnoreCase)
+        || dataType.Equals("decimal", StringComparison.OrdinalIgnoreCase)
+        || dataType.Equals("real", StringComparison.OrdinalIgnoreCase)
+        || dataType.Equals("double precision", StringComparison.OrdinalIgnoreCase))
     {
-      return 1;
+      await using var command = connection.CreateCommand();
+      command.CommandText = $"SELECT COALESCE(MAX(\"{idColumn}\")::bigint, 0) + 1 FROM \"User\"";
+
+      var scalar = await command.ExecuteScalarAsync();
+      if (scalar == null || scalar == DBNull.Value)
+      {
+        return 1;
+      }
+
+      return Convert.ToInt64(scalar);
     }
 
-    return Convert.ToInt32(scalar);
+    // Text-like id columns in legacy schema: generate a stable unique string id.
+    return Guid.NewGuid().ToString("N");
+  }
+
+  private static async Task<string> GetLegacyUserIdDataTypeAsync(System.Data.Common.DbConnection connection, string idColumn)
+  {
+    await using var command = connection.CreateCommand();
+    command.CommandText = "SELECT data_type FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'User' AND lower(column_name) = lower(@columnName) LIMIT 1";
+
+    var p = command.CreateParameter();
+    p.ParameterName = "@columnName";
+    p.Value = idColumn;
+    command.Parameters.Add(p);
+
+    var scalar = await command.ExecuteScalarAsync();
+    return scalar?.ToString() ?? string.Empty;
   }
 
   public async Task<IEnumerable<User>> GetAllUsersAsync()
