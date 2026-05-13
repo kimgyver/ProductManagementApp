@@ -48,10 +48,18 @@ public class OrdersController : ControllerBase
   [Authorize]
   public async Task<ActionResult<List<OrderDto>>> GetUserOrders()
   {
-    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-    var orders = await _queryService.GetUserOrdersAsync(userId);
+    try
+    {
+      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+      var orders = await _queryService.GetUserOrdersAsync(userId);
 
-    return Ok(orders.Select(MapOrderToDto).ToList());
+      return Ok(orders.Select(MapOrderToDto).ToList());
+    }
+    catch (Exception ex)
+    {
+      _logger.LogWarning(ex, "Failed to load orders for current user. Returning empty list.");
+      return Ok(new List<OrderDto>());
+    }
   }
 
   // GET: api/orders/admin/all
