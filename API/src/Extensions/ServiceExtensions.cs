@@ -33,7 +33,11 @@ public static class ServiceExtensions
     services.AddScoped<ISessionService, SessionService>();
     services.AddScoped<IEmailService, ResendEmailService>();
 
-    services.AddControllers();
+    services.AddControllers()
+      .AddJsonOptions(options =>
+      {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+      });
   }
 
   public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)

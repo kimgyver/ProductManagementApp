@@ -79,7 +79,18 @@ export const CheckoutPage: React.FC = () => {
         setError("Payment failed. Please try again.");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Checkout failed");
+      let errorMessage = "Checkout failed";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (err && typeof err === "object" && "response" in err) {
+        const response = (err as any).response;
+        if (response?.data?.error) {
+          errorMessage = response.data.error;
+        } else if (response?.data?.message) {
+          errorMessage = response.data.message;
+        }
+      }
+      setError(errorMessage);
       console.error(err);
     } finally {
       setIsProcessing(false);

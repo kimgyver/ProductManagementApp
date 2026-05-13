@@ -30,7 +30,10 @@ public class PaymentsController : ControllerBase
   public async Task<ActionResult<PaymentResponseDto>> ProcessPayment([FromBody] ProcessPaymentDto dto)
   {
     if (!ModelState.IsValid)
-      return BadRequest(ModelState);
+    {
+      var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+      return BadRequest(new { error = "Invalid payment data", details = errors });
+    }
 
     try
     {
@@ -79,7 +82,7 @@ public class PaymentsController : ControllerBase
     catch (Exception ex)
     {
       _logger.LogError(ex, "Error processing payment");
-      return StatusCode(500, new { error = "Error processing payment" });
+      return StatusCode(500, new { error = "Error processing payment", message = ex.Message });
     }
   }
 

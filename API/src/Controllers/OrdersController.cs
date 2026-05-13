@@ -77,7 +77,10 @@ public class OrdersController : ControllerBase
   public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateOrderDto dto)
   {
     if (!ModelState.IsValid)
-      return BadRequest(ModelState);
+    {
+      var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+      return BadRequest(new { error = "Invalid order data", details = errors });
+    }
 
     try
     {
@@ -96,7 +99,7 @@ public class OrdersController : ControllerBase
     catch (Exception ex)
     {
       _logger.LogError(ex, "Error creating order");
-      return StatusCode(500, new { error = "Error creating order" });
+      return StatusCode(500, new { error = "Error creating order", message = ex.Message });
     }
   }
 
