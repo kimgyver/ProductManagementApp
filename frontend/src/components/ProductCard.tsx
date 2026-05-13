@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import type { Product } from "../types";
 import apiClient from "../api/client";
 import { useAuth } from "../hooks/useAuth";
-import { getCartStorageKey, getCurrentUserIdFromStorage } from "../utils/cartStorage";
+import {
+  getCartStorageKey,
+  getCurrentUserIdFromStorage
+} from "../utils/cartStorage";
 
 interface ProductCardProps {
   product: Product;
@@ -55,7 +58,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const raw = localStorage.getItem(cartStorageKey);
     const items = raw ? JSON.parse(raw) : [];
 
-    const existing = items.find((it: { productId: number }) => it.productId === itemProduct.id);
+    const existing = items.find(
+      (it: { productId: number }) => it.productId === itemProduct.id
+    );
     if (existing) {
       existing.quantity = (existing.quantity || 0) + 1;
       existing.updatedAt = now;

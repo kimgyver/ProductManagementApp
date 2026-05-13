@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { getCartStorageKey, getCurrentUserIdFromStorage } from "../utils/cartStorage";
+import {
+  getCartStorageKey,
+  getCurrentUserIdFromStorage
+} from "../utils/cartStorage";
 
 export const Navigation: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -13,7 +16,11 @@ export const Navigation: React.FC = () => {
       const userId = user?.id ?? getCurrentUserIdFromStorage();
       const raw = localStorage.getItem(getCartStorageKey(userId));
       const items = raw ? JSON.parse(raw) : [];
-      const count = items.reduce((sum: number, item: { quantity?: number }) => sum + (item.quantity || 0), 0);
+      const count = items.reduce(
+        (sum: number, item: { quantity?: number }) =>
+          sum + (item.quantity || 0),
+        0
+      );
       setCartCount(count);
     };
 
@@ -23,7 +30,10 @@ export const Navigation: React.FC = () => {
     window.addEventListener("pm-cart-updated", syncCartCount as EventListener);
     return () => {
       window.removeEventListener("storage", syncCartCount);
-      window.removeEventListener("pm-cart-updated", syncCartCount as EventListener);
+      window.removeEventListener(
+        "pm-cart-updated",
+        syncCartCount as EventListener
+      );
     };
   }, [user?.id]);
 

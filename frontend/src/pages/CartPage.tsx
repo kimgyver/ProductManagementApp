@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import type { Cart, CartItem } from "../types";
 import apiClient from "../api/client";
 import { useAuth } from "../hooks/useAuth";
-import { getCartStorageKey, getCurrentUserIdFromStorage } from "../utils/cartStorage";
+import {
+  getCartStorageKey,
+  getCurrentUserIdFromStorage
+} from "../utils/cartStorage";
 
 export const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
@@ -84,7 +87,8 @@ export const CartPage: React.FC = () => {
     const raw = localStorage.getItem(cartStorageKey);
     const items: CartItem[] = raw ? JSON.parse(raw) : [];
     const totalPrice = items.reduce(
-      (sum, item) => sum + (((item.product?.price ?? item.price) || 0) * item.quantity),
+      (sum, item) =>
+        sum + ((item.product?.price ?? item.price) || 0) * item.quantity,
       0
     );
 
@@ -106,7 +110,11 @@ export const CartPage: React.FC = () => {
     const items: CartItem[] = raw ? JSON.parse(raw) : [];
     const next = items.map(item =>
       item.id === itemId
-        ? { ...item, quantity: Math.max(1, quantity), updatedAt: new Date().toISOString() }
+        ? {
+            ...item,
+            quantity: Math.max(1, quantity),
+            updatedAt: new Date().toISOString()
+          }
         : item
     );
     localStorage.setItem(cartStorageKey, JSON.stringify(next));
