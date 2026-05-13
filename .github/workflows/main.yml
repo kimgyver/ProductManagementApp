@@ -28,5 +28,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore Dependencies
+        run: dotnet restore ProductManagementApp.sln
+
       - name: Run Tests
-        run: dotnet test --no-restore --verbosity normal
+        run: dotnet test ProductManagementApp.sln --no-restore --verbosity normal
