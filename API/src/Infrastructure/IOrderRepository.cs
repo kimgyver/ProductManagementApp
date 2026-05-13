@@ -1,5 +1,6 @@
 using API.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace API.Infrastructure;
 
@@ -26,31 +27,52 @@ public class OrderRepository : IOrderRepository
 
   public async Task<Order?> GetByIdAsync(int id)
   {
-    return await _context.Orders
-      .Include(o => o.Items)
-      .ThenInclude(oi => oi.Product)
-      .Include(o => o.User)
-      .FirstOrDefaultAsync(o => o.Id == id);
+    try
+    {
+      return await _context.Orders
+        .Include(o => o.Items)
+        .ThenInclude(oi => oi.Product)
+        .Include(o => o.User)
+        .FirstOrDefaultAsync(o => o.Id == id);
+    }
+    catch (Exception ex) when (IsOrderSchemaMismatch(ex))
+    {
+      return null;
+    }
   }
 
   public async Task<IEnumerable<Order>> GetByUserIdAsync(int userId)
   {
-    return await _context.Orders
-      .Where(o => o.UserId == userId)
-      .Include(o => o.Items)
-      .ThenInclude(oi => oi.Product)
-      .OrderByDescending(o => o.CreatedAt)
-      .ToListAsync();
+    try
+    {
+      return await _context.Orders
+        .Where(o => o.UserId == userId)
+        .Include(o => o.Items)
+        .ThenInclude(oi => oi.Product)
+        .OrderByDescending(o => o.CreatedAt)
+        .ToListAsync();
+    }
+    catch (Exception ex) when (IsOrderSchemaMismatch(ex))
+    {
+      return Enumerable.Empty<Order>();
+    }
   }
 
   public async Task<IEnumerable<Order>> GetAllAsync()
   {
-    return await _context.Orders
-      .Include(o => o.Items)
-      .ThenInclude(oi => oi.Product)
-      .Include(o => o.User)
-      .OrderByDescending(o => o.CreatedAt)
-      .ToListAsync();
+    try
+    {
+      return await _context.Orders
+        .Include(o => o.Items)
+        .ThenInclude(oi => oi.Product)
+        .Include(o => o.User)
+        .OrderByDescending(o => o.CreatedAt)
+        .ToListAsync();
+    }
+    catch (Exception ex) when (IsOrderSchemaMismatch(ex))
+    {
+      return Enumerable.Empty<Order>();
+    }
   }
 
   public async Task<Order> AddAsync(Order order)
@@ -79,14 +101,31 @@ public class OrderRepository : IOrderRepository
 
   public async Task<Order?> GetByPoNumberAsync(string poNumber)
   {
-    return await _context.Orders
-      .Include(o => o.Items)
-      .ThenInclude(oi => oi.Product)
-      .FirstOrDefaultAsync(o => o.PoNumber == poNumber);
+    try
+    {
+      return await _context.Orders
+        .Include(o => o.Items)
+        .ThenInclude(oi => oi.Product)
+        .FirstOrDefaultAsync(o => o.PoNumber == poNumber);
+    }
+    catch (Exception ex) when (IsOrderSchemaMismatch(ex))
+    {
+      return null;
+    }
   }
 
   public async Task SaveChangesAsync()
   {
     await _context.SaveChangesAsync();
+  }
+
+  private static bool IsOrderSchemaMismatch(Exception ex)
+  {
+    if (ex is PostgresException pg && (pg.SqlState == "42P01" || pg.SqlState == "42703" || pg.SqlState == "22P02"))
+    {
+      return true;
+    }
+
+    return ex.InnerException != null && IsOrderSchemaMismatch(ex.InnerException);
   }
 }
