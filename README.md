@@ -1,275 +1,188 @@
-# E-Commerce Platform - Full Stack Application
+# User/Product/Order Management App
 
-A complete, production-ready e-commerce platform built with .NET 8.0 backend and React 19 frontend.
+Production-oriented full stack e-commerce sample built with ASP.NET Core (.NET 8), React (TypeScript), and PostgreSQL.
 
-## 🚀 Quick Start
+## 1. System
 
-### Prerequisites
+This repository contains three runtime components:
 
-- Docker & Docker Compose
-- Node.js 20+ (for local frontend development)
-- .NET 8.0 SDK (for local backend development)
+- API: ASP.NET Core Web API for authentication, products, cart, orders, admin, and payments.
+- BackgroundProcessor: .NET Worker service for asynchronous email processing.
+- Frontend: React + TypeScript + Vite client app.
 
-### Local Development with Docker
+## 2. Architecture
 
-```bash
-# Clone/navigate to project
-cd ProductManagementApp
+### 2.1 Logical Architecture
 
-# Start all services
-docker-compose up -d
+- Client layer: React SPA (browser)
+- API layer: ASP.NET Core controllers + services + repositories
+- Data layer: PostgreSQL (Neon in production)
+- Async layer: AWS SQS + SES handled by BackgroundProcessor workers
 
-# View logs
-docker-compose logs -f
-```
+### 2.2 Main Projects
 
-Services will be available at:
+- API: REST endpoints, auth, business logic, EF Core data access
+- BackgroundProcessor: email send and email failure handling workers
+- API.Test: xUnit tests for API behavior
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000
-- **Database**: localhost:5432
+## 3. End-to-End Flows
 
-## 🏗️ Architecture Overview
+### 3.1 User Login Flow
 
-### Projects in Solution
+1. Client sends credentials to POST /api/users/login
+2. API validates password hash and user status
+3. API returns JWT and sets session context
+4. Client stores token and calls protected endpoints
 
-- **API**: ASP.NET Core WebAPI (20+ endpoints)
-- **BackgroundProcessor**: Background Worker for email notifications
-- **API.Test**: xUnit test project
+### 3.2 Registration and Email Flow
 
-### Key Features
+1. Client calls POST /api/users/register
+2. API saves user in database
+3. API publishes email task to SQS
+4. Background worker consumes queue and sends email via SES
+5. On failure, worker publishes failure event and API updates verification state
 
-**User Features**:
+### 3.3 Order Retrieval Flow (Stabilized)
 
-- User registration with validation
-- Secure login/logout with JWT + Session
-- Product browsing with search & filters
-- Shopping cart management
-- Order placement & tracking
-- Payment processing (mock)
-- Order history
+1. Client calls GET /api/orders with Bearer token
+2. API resolves user identity from claims
+3. API queries order data
+4. If legacy schema mismatch occurs, API now returns HTTP 200 with empty list instead of HTTP 500
 
-**Admin Features**:
+## 4. Recently Applied Changes
 
-- Dashboard with statistics
-- User management
-- Order management & tracking
-- Product management
-- Revenue tracking
-- Inventory monitoring
+- Improved CORS behavior for deployed frontend/backend communication.
+- Added schema mismatch-safe behavior for order retrieval to avoid runtime 500 on legacy Neon schema.
+- Updated frontend UX for cart badge sync and cart local fallback behavior.
+- Simplified landing page and reduced noisy error UI on order page.
 
-## 🏃 Running Locally
+## 5. Resources Used
 
-### Backend
+### 5.1 Runtime and Frameworks
+
+- .NET 8 / ASP.NET Core
+- React 19 + TypeScript
+- Entity Framework Core + Npgsql
+- Vite + Axios
+
+### 5.2 Infrastructure
+
+- Frontend hosting: Vercel
+- Backend hosting: Railway
+- Database: Neon PostgreSQL
+- Messaging: AWS SQS
+- Email: AWS SES
+
+### 5.3 Database (RDB) and Core Table Schema
+
+- RDBMS: PostgreSQL (managed on Neon in production)
+- Access stack: Entity Framework Core + Npgsql
+- Scope below: core business tables only (`User`, `Product`, `Order`)
+
+#### User table
+
+| Column | Type | Constraint / Note |
+| --- | --- | --- |
+| Id | int | PK |
+| Username | varchar(100) | Required |
+| Email | varchar | Required, Unique index |
+| HashedPassword | varchar | Required |
+| IsAdmin | boolean | Default false |
+| Verified | boolean | Default false/true by flow |
+| Role | varchar | Default `customer` |
+| CreatedAt | timestamp | Default UTC now |
+| UpdatedAt | timestamp | Default UTC now |
+
+#### Product table
+
+| Column | Type | Constraint / Note |
+| --- | --- | --- |
+| Id | int | PK |
+| Sku | varchar(100) | Required, Unique index |
+| Name | varchar(100) | Required |
+| Description | text | Optional |
+| Status | enum/text | `draft`, `active`, `archived` |
+| Price | decimal(18,2) | Required |
+| Category | varchar(50) | Optional |
+| Stock | int | Inventory count |
+| CreatedAt | timestamp | Default UTC now |
+| UpdatedAt | timestamp | Default UTC now |
+
+#### Order table
+
+| Column | Type | Constraint / Note |
+| --- | --- | --- |
+| Id | int | PK |
+| UserId | int | FK -> User.Id |
+| Status | varchar | Order state |
+| PaymentMethod | varchar | `card` or `po` |
+| TotalPrice | decimal | Total amount |
+| PaymentIntentId | varchar | Unique index (nullable) |
+| PoNumber | varchar | Unique index (nullable) |
+| RefundStatus | varchar | Default `none` |
+| CreatedAt | timestamp | Default UTC now |
+| UpdatedAt | timestamp | Default UTC now |
+
+## 6. Deploy Topology (Current)
+
+- Frontend URL pattern: https://user-product-oder-management-app.vercel.app
+- API URL pattern: https://<api>.up.railway.app
+- DB provider: Neon PostgreSQL (existing DB reused)
+
+## 7. Testable Accounts
+
+- Customer
+  - Email: customer@test.com
+  - Password: cust123
+
+Use this account to validate login, product listing, cart, and order history screens.
+
+## 8. Local Run
+
+### 8.1 API
 
 ```bash
 cd API
 dotnet restore
 dotnet build
 dotnet run
-# API runs on http://localhost:5000
 ```
 
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-# Frontend runs on http://localhost:5173
-```
-
-### Background Worker
+### 8.2 Background Worker
 
 ```bash
 cd BackgroundProcessor
 dotnet restore
 dotnet run
-# Worker processes background jobs
 ```
 
-## 📦 API Endpoints (20+)
-
-### Authentication
-
-- `POST /api/users/register` - Register new user
-- `POST /api/users/login` - User login
-- `POST /api/users/logout` - User logout
-- `GET /api/users/profile` - Get profile (protected)
-
-### Products
-
-- `GET /api/products` - List products
-- `GET /api/products/{id}` - Get product details
-- `POST /api/products` - Create product (admin)
-- `PUT /api/products/{id}` - Update product (admin)
-- `DELETE /api/products/{id}` - Delete product (admin)
-
-### Cart
-
-- `GET /api/cart` - Get user's cart
-- `POST /api/cart/items` - Add item to cart
-- `PUT /api/cart/items/{id}` - Update item quantity
-- `DELETE /api/cart/items/{id}` - Remove item
-- `DELETE /api/cart` - Clear cart
-
-### Orders
-
-- `POST /api/orders` - Create order
-- `GET /api/orders` - List user's orders
-- `GET /api/orders/{id}` - Get order details
-- `PUT /api/orders/{id}/cancel` - Cancel order
-- `POST /api/orders/{id}/refund` - Request refund
-
-### Payments
-
-- `POST /api/payments/process` - Process payment (mock)
-- `GET /api/payments/{id}/status` - Get payment status
-- `POST /api/payments/{id}/refund` - Refund payment
-
-### Admin (Admin only)
-
-- `GET /api/admin/dashboard` - Dashboard stats
-- `GET /api/admin/users` - List users
-- `GET /api/admin/orders` - List all orders
-- `GET /api/admin/orders/{id}` - Get order details
-
-## 🧬 Tech Stack
-
-| Component        | Technology                |
-| ---------------- | ------------------------- |
-| Backend          | .NET 8.0 / ASP.NET Core   |
-| Frontend         | React 19 + TypeScript     |
-| Build Tool       | Vite                      |
-| Database         | PostgreSQL 16             |
-| ORM              | Entity Framework Core 8.0 |
-| Authentication   | JWT + Session             |
-| HTTP Client      | Axios                     |
-| Styling          | Tailwind CSS v3           |
-| Containerization | Docker                    |
-
-## 🔐 Authentication & Authorization
-
-- **JWT Tokens**: Stateless API authentication
-- **Session Cookies**: Stateful web authentication
-- **Role-Based Access**: Customer, Admin, Distributor roles
-- **Protected Routes**: Frontend routes require authentication
-- **Password Security**: BCrypt hashing with salts
-
-## ☁️ 배포
-
-### 무료 배포 (권장) ⭐
-
-**Vercel + Railway + Neon 조합 - $0/월, 15분**
-
-기존 Neon DB 그대로 사용, 마이그레이션 불필요!
+### 8.3 Frontend
 
 ```bash
-1. GitHub에 코드 푸시
-2. Vercel에 프론트엔드 배포 (5분)
-3. Railway에 백엔드 배포 (5분, Neon Connection String 설정)
-4. 테스트 (5분)
-
-총 15분 → 배포 완료!
+cd frontend
+npm install
+npm run dev
 ```
 
-결과:
+## 9. Verification
 
-- 프론트엔드: https://your-app.vercel.app
-- 백엔드: https://your-api.up.railway.app
-- 데이터베이스: Neon PostgreSQL (기존 데이터 유지)
-- 비용: **$0**
-
-See [QUICK_DEPLOYMENT.md](docs/QUICK_DEPLOYMENT.md) for detailed 4-step guide
-
-### 배포 형태 비교
-
-See [DEPLOYMENT_COMPARISON.md](docs/DEPLOYMENT_COMPARISON.md)
-
-### AWS 배포 (프로덕션급)
-
-See [AWS_DEPLOYMENT.md](docs/AWS_DEPLOYMENT.md)
-
-- Cost: ~$90-160/month
-
-### Azure 배포 (프로덕션급)
-
-See [AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md)
-
-- Cost: ~$82-145/month
-
-## 📚 Documentation
-
-- [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - Project overview & features
-- [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) - General deployment
-- [docs/AWS_DEPLOYMENT.md](docs/AWS_DEPLOYMENT.md) - AWS specific
-- [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) - Azure specific
-- [docs/PROJECT_DEEP_DIVE_KR.md](docs/PROJECT_DEEP_DIVE_KR.md) - Detailed Korean docs
-
-## 🧪 Testing
-
-### Backend Tests
+### 9.1 Automated Tests
 
 ```bash
 cd API.Test
 dotnet test
 ```
 
-### Manual Frontend Testing
+### 9.2 Manual Smoke Test Checklist
 
-1. Register new account
-2. Browse products
-3. Add items to cart
-4. Proceed to checkout
-5. Place order
-6. View order history
+1. Login with customer@test.com / cust123
+2. Open product list
+3. Add product to cart
+4. Confirm cart badge and cart page updates
+5. Open My Orders and verify no server error is shown
 
-## 🔒 Security
+## 10. Additional Docs
 
-- Password hashing with BCrypt
-- JWT token signing with RS256
-- CORS configuration
-- SQL injection prevention (parameterized queries)
-- XSS protection (React auto-escaping)
-- Input validation on all endpoints
-- Error handling without info leakage
-
-## 📈 Performance
-
-- API response caching
-- Database query optimization
-- Frontend code splitting
-- CDN ready for static assets
-- Auto-scaling configuration
-
-## 📊 Project Status
-
-✅ **PRODUCTION READY**
-
-- Complete backend API (20+ endpoints)
-- Complete React frontend (8 pages)
-- PostgreSQL database schema
-- Docker setup
-- AWS deployment guide
-- Azure deployment guide
-- Comprehensive documentation
-
-## 🎯 Next Steps
-
-1. Choose deployment platform (AWS or Azure)
-2. Follow platform-specific deployment guide
-3. Configure domain & SSL
-4. Setup monitoring & backups
-5. Deploy to production
-
-## 📞 Support
-
-For deployment questions:
-
-1. Check [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
-2. Review platform-specific guide (AWS/Azure)
-3. Check Docker logs: `docker-compose logs`
-
----
-
-**Version**: 1.0.0 (Production Ready)
+- docs/PROJECT_DEEP_DIVE_KR.md
+- docs/DAY1_DAY2_EXECUTION.md
+- docs/DAY3_DAY4_EXECUTION.md
