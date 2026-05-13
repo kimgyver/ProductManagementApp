@@ -94,14 +94,16 @@ export const CheckoutPage: React.FC = () => {
       }
 
       // Validate items have productId
-      const itemsToSend = cart.items.map((item) => ({
+      const itemsToSend = cart.items.map(item => ({
         productId: item.productId || (item as any).product?.id,
         quantity: item.quantity,
         selectedOptions: item.selectedOptions
       }));
 
-      if (itemsToSend.some((item) => !item.productId || item.quantity <= 0)) {
-        setError("Invalid cart items. Please try re-adding items to your cart.");
+      if (itemsToSend.some(item => !item.productId || item.quantity <= 0)) {
+        setError(
+          "Invalid cart items. Please try re-adding items to your cart."
+        );
         return;
       }
 

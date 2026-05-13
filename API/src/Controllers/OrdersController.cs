@@ -122,8 +122,9 @@ public class OrdersController : ControllerBase
     {
       _logger.LogError(ex, "Error creating order. Exception type: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}",
         ex.GetType().Name, ex.Message, ex.StackTrace);
-      return StatusCode(500, new { 
-        error = "Error creating order", 
+      return StatusCode(500, new
+      {
+        error = "Error creating order",
         message = ex.Message,
         exceptionType = ex.GetType().Name,
         details = ex.InnerException?.Message
