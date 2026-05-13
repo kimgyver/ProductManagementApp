@@ -21,18 +21,17 @@ public class ProductsController : ControllerBase
     _productQueryService = productQueryService;
   }
 
+
   [HttpGet]
-  [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme + "," + CookieAuthenticationDefaults.AuthenticationScheme)]
+  [AllowAnonymous]
   public async Task<IActionResult> GetAllProducts()
   {
-    var Username = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-    var isAdmin = HttpContext.User.IsInRole("Admin");
-
     var products = await _productQueryService.GetAllProductsAsync();
     return Ok(products);
   }
 
   [HttpGet("{id}")]
+  [AllowAnonymous]
   public async Task<IActionResult> GetProductById(int id)
   {
     var product = await _productQueryService.GetProductByIdAsync(id);
