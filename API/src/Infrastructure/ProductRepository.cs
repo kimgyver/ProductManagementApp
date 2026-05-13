@@ -67,13 +67,13 @@ public class ProductRepository : IProductRepository
     command.CommandText = "SELECT * FROM \"Product\" ORDER BY 1";
 
     await using var reader = await command.ExecuteReaderAsync();
-    var index = 1;
     while (await reader.ReadAsync())
     {
+      var actualId = GetInt(reader, "Id", "id");
       products.Add(new Product
       {
-        Id = index++,
-        Sku = GetString(reader, "sku", "id") ?? $"SKU-{index}",
+        Id = actualId > 0 ? actualId : products.Count + 1,
+        Sku = GetString(reader, "sku", "id") ?? $"SKU-{products.Count + 1}",
         Name = GetString(reader, "name", "title") ?? "Unnamed Product",
         Description = GetString(reader, "description") ?? string.Empty,
         Category = GetString(reader, "category") ?? string.Empty,

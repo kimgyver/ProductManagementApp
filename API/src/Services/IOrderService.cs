@@ -66,9 +66,16 @@ public class OrderCommandService : IOrderCommandService
       orderItems.Add(orderItem);
       totalPrice += product.Price * item.Quantity;
 
-      // Reduce stock
-      product.Stock -= item.Quantity;
-      await _productRepository.UpdateProductAsync(product);
+      // Reduce stock (best effort - proceed even if stock update fails during DB migration)
+      try
+      {
+        product.Stock -= item.Quantity;
+        await _productRepository.UpdateProductAsync(product);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogWarning(ex, "Could not update stock for product {ProductId}. Order will proceed without stock reduction.", product.Id);
+      }
     }
 
     var order = new Order

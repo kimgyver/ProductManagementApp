@@ -19,10 +19,9 @@ public class JwtService : IJwtService
 
   public string GenerateTokenForUser(User user)
   {
-    var nameIdentifier = user.Id > 0 ? user.Id.ToString() : user.Email;
     var claims = new[]
     {
-      new Claim(ClaimTypes.NameIdentifier, nameIdentifier),
+      new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
       new Claim(ClaimTypes.Email, user.Email),
       new Claim(ClaimTypes.Name, user.Username),
       new Claim(ClaimTypes.Role, user.IsAdmin ? "Admin" : "User")

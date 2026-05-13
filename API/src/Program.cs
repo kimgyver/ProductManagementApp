@@ -52,7 +52,36 @@ try
     using (var scope = app.Services.CreateScope())
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.Migrate();
+        try
+        {
+            dbContext.Database.Migrate();
+
+            // Verify Products table actually exists (migration history can be stale)
+            _ = dbContext.Products.Any();
+        }
+        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P01")
+        {
+            Log.Warning("Products table missing despite migration history. Resetting and re-migrating...");
+            try
+            {
+                dbContext.Database.ExecuteSqlRaw(@"
+                    DO $$ BEGIN
+                        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '__EFMigrationsHistory') THEN
+                            DELETE FROM ""__EFMigrationsHistory"";
+                        END IF;
+                    END $$;
+                ");
+                dbContext.Database.Migrate();
+            }
+            catch (Exception ex2)
+            {
+                Log.Error(ex2, "Failed to recover database schema. App may not function correctly.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Database migration failed.");
+        }
     }
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
