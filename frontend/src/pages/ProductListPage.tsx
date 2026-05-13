@@ -54,14 +54,19 @@ export const ProductListPage: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Search
-              {error && error.includes("Failed to load products") && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
-                  상품 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
-                </div>
-              )}
+              </label>
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+              {error && error.includes("Failed to load products") && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 text-red-700 rounded">
+                  상품 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+                </div>
+              )}
             </div>
 
             <div>
