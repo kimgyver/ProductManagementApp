@@ -46,14 +46,34 @@ public class OrderCommandService : IOrderCommandService
     decimal totalPrice = 0;
     var orderItems = new List<OrderItem>();
 
+    if (dto.Items == null || dto.Items.Count == 0)
+      throw new InvalidOperationException("Order must contain at least one item");
+
     foreach (var item in dto.Items)
     {
+      _logger.LogInformation("Processing order item: ProductId={ProductId}, Quantity={Quantity}", item.ProductId, item.Quantity);
+
+      if (item.ProductId <= 0)
+        throw new InvalidOperationException($"Invalid productId: {item.ProductId}");
+
+      if (item.Quantity <= 0)
+        throw new InvalidOperationException($"Invalid quantity for product {item.ProductId}: {item.Quantity}");
+
       var product = await _productRepository.GetProductByIdAsync(item.ProductId);
       if (product == null)
+      {
+        _logger.LogError("Product not found. ProductId={ProductId}", item.ProductId);
         throw new InvalidOperationException($"Product {item.ProductId} not found");
+      }
+
+      _logger.LogInformation("Product found: {ProductName}, Stock={Stock}, Price={Price}", product.Name, product.Stock, product.Price);
 
       if (product.Stock < item.Quantity)
-        throw new InvalidOperationException($"Insufficient stock for product {product.Name}");
+      {
+        _logger.LogWarning("Insufficient stock. Product={ProductName}, Required={Required}, Available={Available}",
+          product.Name, item.Quantity, product.Stock);
+        throw new InvalidOperationException($"Insufficient stock for product {product.Name}. Available: {product.Stock}, Requested: {item.Quantity}");
+      }
 
       var orderItem = new OrderItem
       {
@@ -71,6 +91,7 @@ public class OrderCommandService : IOrderCommandService
       {
         product.Stock -= item.Quantity;
         await _productRepository.UpdateProductAsync(product);
+        _logger.LogInformation("Stock updated for product {ProductId}. New stock: {NewStock}", product.Id, product.Stock);
       }
       catch (Exception ex)
       {
@@ -92,8 +113,11 @@ public class OrderCommandService : IOrderCommandService
       PaymentMethod = dto.PaymentMethod ?? "card"
     };
 
+    _logger.LogInformation("Saving order to database. UserId={UserId}, ItemCount={ItemCount}, TotalPrice={TotalPrice}",
+      userId, orderItems.Count, totalPrice);
+
     await _orderRepository.AddAsync(order);
-    _logger.LogInformation("Order created: {OrderId}", order.Id);
+    _logger.LogInformation("Order created and saved: {OrderId}", order.Id);
 
     // Send confirmation email
     try

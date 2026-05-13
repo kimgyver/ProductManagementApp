@@ -87,14 +87,25 @@ public class OrdersController : ControllerBase
     if (!ModelState.IsValid)
     {
       var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+      _logger.LogWarning("ModelState validation failed for CreateOrder. Errors: {Errors}", string.Join("; ", errors));
       return BadRequest(new { error = "Invalid order data", details = errors });
     }
 
     try
     {
+      _logger.LogInformation("CreateOrder request received with {ItemCount} items", dto.Items?.Count ?? 0);
+
       var userId = await ResolveUserIdAsync();
       if (userId == null)
+      {
+        _logger.LogWarning("ResolveUserIdAsync returned null. User claims: NameIdentifier={NameId}, Email={Email}, Sub={Sub}",
+          User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+          User.FindFirst(ClaimTypes.Email)?.Value,
+          User.FindFirst("sub")?.Value);
         return Unauthorized(new { error = "Invalid user token. Please login again." });
+      }
+
+      _logger.LogInformation("Creating order for userId {UserId} with items: {@Items}", userId, dto.Items);
 
       var order = await _commandService.CreateOrderAsync(userId.Value, dto);
 
@@ -104,13 +115,19 @@ public class OrdersController : ControllerBase
     }
     catch (InvalidOperationException ex)
     {
-      _logger.LogWarning(ex, "Invalid order creation attempt");
-      return BadRequest(new { error = ex.Message });
+      _logger.LogWarning(ex, "Invalid order creation attempt: {Message}", ex.Message);
+      return BadRequest(new { error = ex.Message, details = new { exception = "InvalidOperationException" } });
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Error creating order");
-      return StatusCode(500, new { error = "Error creating order", message = ex.Message });
+      _logger.LogError(ex, "Error creating order. Exception type: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}",
+        ex.GetType().Name, ex.Message, ex.StackTrace);
+      return StatusCode(500, new { 
+        error = "Error creating order", 
+        message = ex.Message,
+        exceptionType = ex.GetType().Name,
+        details = ex.InnerException?.Message
+      });
     }
   }
 

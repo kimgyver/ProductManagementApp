@@ -93,9 +93,23 @@ export const CheckoutPage: React.FC = () => {
         return;
       }
 
+      // Validate items have productId
+      const itemsToSend = cart.items.map((item) => ({
+        productId: item.productId || (item as any).product?.id,
+        quantity: item.quantity,
+        selectedOptions: item.selectedOptions
+      }));
+
+      if (itemsToSend.some((item) => !item.productId || item.quantity <= 0)) {
+        setError("Invalid cart items. Please try re-adding items to your cart.");
+        return;
+      }
+
+      console.log("Sending order request with items:", itemsToSend);
+
       // Step 1: Create order
       const orderResponse = await apiClient.post("/orders", {
-        items: cart.items,
+        items: itemsToSend,
         recipientName,
         recipientPhone,
         shippingAddress1: address1,
@@ -104,6 +118,7 @@ export const CheckoutPage: React.FC = () => {
         paymentMethod
       });
 
+      console.log("Order response:", orderResponse.data);
       const orderId = orderResponse.data.id;
 
       // Step 2: Process payment
@@ -124,18 +139,28 @@ export const CheckoutPage: React.FC = () => {
     } catch (err) {
       let errorMessage = "Checkout failed";
       if (axios.isAxiosError(err)) {
-        if (typeof err.response?.data?.error === "string") {
-          errorMessage = err.response.data.error;
-        } else if (typeof err.response?.data?.message === "string") {
-          errorMessage = err.response.data.message;
-        } else {
-          errorMessage = err.message;
+        console.error("Axios error response:", err.response?.data);
+        // Try to extract detailed error message
+        if (err.response?.data) {
+          const data = err.response.data;
+          if (typeof data.message === "string") {
+            errorMessage = data.message;
+          } else if (typeof data.error === "string") {
+            errorMessage = data.error;
+          } else if (data.details) {
+            errorMessage = Array.isArray(data.details)
+              ? data.details.join("; ")
+              : String(data.details);
+          }
+        }
+        if (!errorMessage || errorMessage === "Checkout failed") {
+          errorMessage = err.message || "Order creation failed";
         }
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
       setError(errorMessage);
-      console.error(err);
+      console.error("Full error:", err);
     } finally {
       setIsProcessing(false);
     }
