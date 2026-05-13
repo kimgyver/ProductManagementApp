@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using API.Services;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Collections.Concurrent;
 
 namespace API.Controllers;
 
@@ -13,6 +14,7 @@ public class CartController : ControllerBase
   private readonly IProductQueryService _productQueryService;
   private readonly ILogger<CartController> _logger;
   private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+  private static readonly ConcurrentDictionary<string, List<SessionCartItem>> CartStore = new(StringComparer.OrdinalIgnoreCase);
 
   public CartController(IProductQueryService productQueryService, ILogger<CartController> logger)
   {
@@ -29,7 +31,7 @@ public class CartController : ControllerBase
     if (string.IsNullOrWhiteSpace(userKey))
       return Unauthorized(new { error = "Invalid user context" });
 
-    var sessionCart = GetCartFromSession(userKey);
+    var sessionCart = GetCartFromStore(userKey);
     var products = (await _productQueryService.GetAllProductsAsync()).ToDictionary(p => p.Id);
 
     var items = sessionCart.Select(ci =>
@@ -73,7 +75,7 @@ public class CartController : ControllerBase
       if (dto.ProductId <= 0)
         return BadRequest(new { error = "Invalid product id" });
 
-      var cart = GetCartFromSession(userKey);
+      var cart = GetCartFromStore(userKey);
 
       var variantKey = GenerateVariantKey(dto.SelectedOptions);
       var existingItem = cart.FirstOrDefault(ci =>
@@ -96,7 +98,7 @@ public class CartController : ControllerBase
         cart.Add(cartItem);
       }
 
-      SaveCartToSession(userKey, cart);
+      SaveCartToStore(userKey, cart);
 
       _logger.LogInformation("Product {ProductId} added to cart for user {UserKey}", dto.ProductId, userKey);
 
@@ -120,7 +122,7 @@ public class CartController : ControllerBase
       if (string.IsNullOrWhiteSpace(userKey))
         return Unauthorized(new { error = "Invalid user context" });
 
-      var cart = GetCartFromSession(userKey);
+      var cart = GetCartFromStore(userKey);
       var cartItem = cart.FirstOrDefault(ci => ci.Id == itemId);
 
       if (cartItem == null)
@@ -128,7 +130,7 @@ public class CartController : ControllerBase
 
       cartItem.Quantity = dto.Quantity <= 0 ? 1 : dto.Quantity;
 
-      SaveCartToSession(userKey, cart);
+      SaveCartToStore(userKey, cart);
 
       return Ok(new { message = "Cart item updated" });
     }
@@ -150,14 +152,14 @@ public class CartController : ControllerBase
       if (string.IsNullOrWhiteSpace(userKey))
         return Unauthorized(new { error = "Invalid user context" });
 
-      var cart = GetCartFromSession(userKey);
+      var cart = GetCartFromStore(userKey);
       var cartItem = cart.FirstOrDefault(ci => ci.Id == itemId);
 
       if (cartItem == null)
         return NotFound(new { error = "Cart item not found" });
 
       cart.Remove(cartItem);
-      SaveCartToSession(userKey, cart);
+      SaveCartToStore(userKey, cart);
 
       _logger.LogInformation("Item {ItemId} removed from cart for user {UserKey}", itemId, userKey);
 
@@ -181,7 +183,7 @@ public class CartController : ControllerBase
       if (string.IsNullOrWhiteSpace(userKey))
         return Unauthorized(new { error = "Invalid user context" });
 
-      SaveCartToSession(userKey, new List<SessionCartItem>());
+      SaveCartToStore(userKey, new List<SessionCartItem>());
 
       _logger.LogInformation("Cart cleared for user {UserKey}", userKey);
 
@@ -201,28 +203,22 @@ public class CartController : ControllerBase
       ?? User.FindFirst(ClaimTypes.Email)?.Value;
   }
 
-  private List<SessionCartItem> GetCartFromSession(string userKey)
+  private List<SessionCartItem> GetCartFromStore(string userKey)
   {
-    var raw = HttpContext.Session.GetString(GetCartSessionKey(userKey));
-    if (string.IsNullOrWhiteSpace(raw))
-      return new List<SessionCartItem>();
-
-    try
-    {
-      return JsonSerializer.Deserialize<List<SessionCartItem>>(raw, JsonOptions) ?? new List<SessionCartItem>();
-    }
-    catch
+    if (!CartStore.TryGetValue(userKey, out var items))
     {
       return new List<SessionCartItem>();
     }
+
+    // Return a copy so mutations are explicit via SaveCartToStore
+    return JsonSerializer.Deserialize<List<SessionCartItem>>(JsonSerializer.Serialize(items, JsonOptions), JsonOptions)
+      ?? new List<SessionCartItem>();
   }
 
-  private void SaveCartToSession(string userKey, List<SessionCartItem> items)
+  private void SaveCartToStore(string userKey, List<SessionCartItem> items)
   {
-    HttpContext.Session.SetString(GetCartSessionKey(userKey), JsonSerializer.Serialize(items, JsonOptions));
+    CartStore[userKey] = items;
   }
-
-  private static string GetCartSessionKey(string userKey) => $"cart:{userKey}";
 
   private string GenerateVariantKey(string? selectedOptions)
   {
