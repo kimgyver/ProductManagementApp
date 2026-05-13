@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using API.Models;
 using API.Exceptions;
 using Npgsql;
+using System.Text;
 
 namespace API.Infrastructure;
 
@@ -21,10 +22,141 @@ public class UserRepository : IUserRepository
       await _context.Users.AddAsync(user);
       await _context.SaveChangesAsync();
     }
-    catch (Exception ex) when (ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
+    catch (Exception ex) when (IsDuplicateEmailError(ex))
     {
       throw new DuplicateEmailException($"Email `{user.Email} is already registered.`", ex);
     }
+    catch (Exception ex) when (IsLegacySchemaMismatch(ex))
+    {
+      await AddToLegacyUserSchemaAsync(user);
+    }
+  }
+
+  private async Task AddToLegacyUserSchemaAsync(User user)
+  {
+    await using var connection = _context.Database.GetDbConnection();
+    if (connection.State != System.Data.ConnectionState.Open)
+    {
+      await connection.OpenAsync();
+    }
+
+    var columns = await GetLegacyUserColumnsAsync(connection);
+    if (columns.Count == 0)
+    {
+      throw new InvalidOperationException("Legacy user table was not found.");
+    }
+
+    if (!columns.Contains("email", StringComparer.OrdinalIgnoreCase))
+    {
+      throw new InvalidOperationException("Legacy user table does not have an email column.");
+    }
+
+    if (await LegacyEmailExistsAsync(connection, user.Email))
+    {
+      throw new DuplicateEmailException($"Email `{user.Email} is already registered.`", new InvalidOperationException("Legacy duplicate email"));
+    }
+
+    var insertColumns = new List<string>();
+    var values = new List<object?>();
+
+    AddIfPresent(columns, insertColumns, values, "email", user.Email);
+    AddIfPresent(columns, insertColumns, values, "username", user.Username);
+    AddIfPresent(columns, insertColumns, values, "name", user.Username);
+    AddIfPresent(columns, insertColumns, values, "hashedpassword", user.HashedPassword);
+    AddIfPresent(columns, insertColumns, values, "hashed_password", user.HashedPassword);
+    AddIfPresent(columns, insertColumns, values, "password", user.HashedPassword);
+    AddIfPresent(columns, insertColumns, values, "isadmin", user.IsAdmin);
+    AddIfPresent(columns, insertColumns, values, "is_admin", user.IsAdmin);
+    AddIfPresent(columns, insertColumns, values, "verified", user.Verified);
+    AddIfPresent(columns, insertColumns, values, "role", string.IsNullOrWhiteSpace(user.Role) ? "customer" : user.Role);
+    AddIfPresent(columns, insertColumns, values, "createdat", DateTime.UtcNow);
+    AddIfPresent(columns, insertColumns, values, "created_at", DateTime.UtcNow);
+    AddIfPresent(columns, insertColumns, values, "updatedat", DateTime.UtcNow);
+    AddIfPresent(columns, insertColumns, values, "updated_at", DateTime.UtcNow);
+
+    if (insertColumns.Count == 0)
+    {
+      throw new InvalidOperationException("No compatible columns were found for legacy user insert.");
+    }
+
+    await using var insert = connection.CreateCommand();
+    var columnSql = string.Join(", ", insertColumns.Select(c => $"\"{c}\""));
+    var valueSql = new StringBuilder();
+
+    for (var i = 0; i < values.Count; i++)
+    {
+      if (i > 0)
+      {
+        valueSql.Append(", ");
+      }
+
+      var paramName = $"@p{i}";
+      valueSql.Append(paramName);
+
+      var p = insert.CreateParameter();
+      p.ParameterName = paramName;
+      p.Value = values[i] ?? DBNull.Value;
+      insert.Parameters.Add(p);
+    }
+
+    insert.CommandText = $"INSERT INTO \"User\" ({columnSql}) VALUES ({valueSql})";
+    await insert.ExecuteNonQueryAsync();
+  }
+
+  private static void AddIfPresent(IReadOnlyCollection<string> availableColumns, ICollection<string> insertColumns, ICollection<object?> values, string columnName, object? value)
+  {
+    if (availableColumns.Contains(columnName, StringComparer.OrdinalIgnoreCase) && !insertColumns.Contains(columnName, StringComparer.OrdinalIgnoreCase))
+    {
+      insertColumns.Add(columnName);
+      values.Add(value);
+    }
+  }
+
+  private static bool IsDuplicateEmailError(Exception ex)
+  {
+    if (ex is PostgresException pg && pg.SqlState == "23505")
+    {
+      return true;
+    }
+
+    if (ex.Message.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase)
+        || ex.Message.Contains("duplicate key value violates unique constraint", StringComparison.OrdinalIgnoreCase))
+    {
+      return true;
+    }
+
+    return ex.InnerException != null && IsDuplicateEmailError(ex.InnerException);
+  }
+
+  private static async Task<HashSet<string>> GetLegacyUserColumnsAsync(System.Data.Common.DbConnection connection)
+  {
+    var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    await using var command = connection.CreateCommand();
+    command.CommandText = "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'User'";
+
+    await using var reader = await command.ExecuteReaderAsync();
+    while (await reader.ReadAsync())
+    {
+      var name = reader.GetString(0);
+      result.Add(name);
+    }
+
+    return result;
+  }
+
+  private static async Task<bool> LegacyEmailExistsAsync(System.Data.Common.DbConnection connection, string email)
+  {
+    await using var command = connection.CreateCommand();
+    command.CommandText = "SELECT 1 FROM \"User\" WHERE lower(email) = lower(@email) LIMIT 1";
+
+    var p = command.CreateParameter();
+    p.ParameterName = "@email";
+    p.Value = email;
+    command.Parameters.Add(p);
+
+    var scalar = await command.ExecuteScalarAsync();
+    return scalar != null && scalar != DBNull.Value;
   }
 
   public async Task<IEnumerable<User>> GetAllUsersAsync()
