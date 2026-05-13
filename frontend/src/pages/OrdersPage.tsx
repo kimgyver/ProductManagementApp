@@ -7,7 +7,6 @@ import { useAuth } from "../hooks/useAuth";
 export const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -24,7 +23,7 @@ export const OrdersPage: React.FC = () => {
       const response = await apiClient.get("/orders");
       setOrders(response.data || []);
     } catch (err) {
-      setError("Failed to load orders");
+      setOrders([]);
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -51,12 +50,6 @@ export const OrdersPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <h1 className="text-4xl font-bold text-gray-800 mb-8">My Orders</h1>
-
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
-            {error}
-          </div>
-        )}
 
         {orders.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow">

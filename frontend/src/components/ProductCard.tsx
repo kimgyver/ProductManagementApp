@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import type { Product } from "../types";
 import apiClient from "../api/client";
@@ -72,17 +71,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
 
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    window.dispatchEvent(new Event("pm-cart-updated"));
   };
 
   return (
-    <Link
-      to={`/products/${product.id}`}
-      className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden h-full flex flex-col"
-    >
-      <div className="bg-gray-200 h-48 flex items-center justify-center text-gray-400">
-        <span>Product Image</span>
-      </div>
-
+    <div className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden h-full flex flex-col">
       <div className="p-4 flex-1 flex flex-col">
         <h3 className="text-lg font-semibold text-gray-800 line-clamp-2 mb-2">
           {product.name}
@@ -143,6 +136,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <span className="text-white font-bold text-lg">Out of Stock</span>
         </div>
       )}
-    </Link>
+    </div>
   );
 };

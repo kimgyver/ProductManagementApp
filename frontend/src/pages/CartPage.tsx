@@ -104,6 +104,7 @@ export const CartPage: React.FC = () => {
         : item
     );
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event("pm-cart-updated"));
   };
 
   const removeLocalItem = (itemId: number) => {
@@ -113,6 +114,7 @@ export const CartPage: React.FC = () => {
       CART_STORAGE_KEY,
       JSON.stringify(items.filter(item => item.id !== itemId))
     );
+    window.dispatchEvent(new Event("pm-cart-updated"));
   };
 
   const handleCheckout = () => {
