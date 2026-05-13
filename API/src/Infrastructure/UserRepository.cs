@@ -74,11 +74,6 @@ public class UserRepository : IUserRepository
     AddIfPresent(columns, insertColumns, values, "is_admin", user.IsAdmin);
     AddIfPresent(columns, insertColumns, values, "verified", user.Verified);
     AddIfPresent(columns, insertColumns, values, "role", string.IsNullOrWhiteSpace(user.Role) ? "customer" : user.Role);
-    AddIfPresent(columns, insertColumns, values, "createdat", DateTime.UtcNow);
-    AddIfPresent(columns, insertColumns, values, "created_at", DateTime.UtcNow);
-    AddIfPresent(columns, insertColumns, values, "updatedat", DateTime.UtcNow);
-    AddIfPresent(columns, insertColumns, values, "updated_at", DateTime.UtcNow);
-
     if (insertColumns.Count == 0)
     {
       throw new InvalidOperationException("No compatible columns were found for legacy user insert.");
