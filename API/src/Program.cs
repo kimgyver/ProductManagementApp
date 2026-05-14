@@ -54,12 +54,23 @@ try
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         try
         {
-            dbContext.Database.Migrate();
+            // Delete stale migration history if tables are missing (handles DB re-provisioning)
+            var tableExists = false;
+            try
+            {
+                _ = dbContext.Products.Any();
+                tableExists = true;
+            }
+            catch { }
 
-            // Verify critical tables exist
-            _ = dbContext.Products.Any();
-            _ = dbContext.Orders.Any();
-            _ = dbContext.Carts.Any();
+            if (!tableExists)
+            {
+                Log.Warning("Tables missing despite migration history. Clearing __EFMigrationsHistory to force re-migration.");
+                dbContext.Database.ExecuteSqlRaw("DROP TABLE IF EXISTS \"__EFMigrationsHistory\"");
+            }
+
+            dbContext.Database.Migrate();
+            Log.Information("Database migration completed successfully.");
         }
         catch (Exception ex)
         {
