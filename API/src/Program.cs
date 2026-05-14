@@ -61,30 +61,10 @@ try
             _ = dbContext.Orders.Any();
             _ = dbContext.Carts.Any();
         }
-        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P01")
-        {
-            // Table doesn't exist - likely migration history is out of sync
-            Log.Warning("Critical table missing despite migration history. Resetting and re-migrating... Error: {Message}", ex.Message);
-            try
-            {
-                dbContext.Database.ExecuteSqlRaw(@"
-                    DO $$ BEGIN
-                        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '__EFMigrationsHistory') THEN
-                            DELETE FROM ""__EFMigrationsHistory"";
-                        END IF;
-                    END $$;
-                ");
-                dbContext.Database.Migrate();
-                Log.Information("Database migration recovery completed successfully");
-            }
-            catch (Exception ex2)
-            {
-                Log.Error(ex2, "Failed to recover database schema. App may not function correctly.");
-            }
-        }
         catch (Exception ex)
         {
             Log.Error(ex, "Database migration failed. Exception type: {ExceptionType}", ex.GetType().Name);
+            throw;
         }
     }
 
