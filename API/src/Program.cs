@@ -56,12 +56,15 @@ try
         {
             dbContext.Database.Migrate();
 
-            // Verify Products table actually exists (migration history can be stale)
+            // Verify critical tables exist
             _ = dbContext.Products.Any();
+            _ = dbContext.Orders.Any();
+            _ = dbContext.Carts.Any();
         }
         catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P01")
         {
-            Log.Warning("Products table missing despite migration history. Resetting and re-migrating...");
+            // Table doesn't exist - likely migration history is out of sync
+            Log.Warning("Critical table missing despite migration history. Resetting and re-migrating... Error: {Message}", ex.Message);
             try
             {
                 dbContext.Database.ExecuteSqlRaw(@"
@@ -72,6 +75,7 @@ try
                     END $$;
                 ");
                 dbContext.Database.Migrate();
+                Log.Information("Database migration recovery completed successfully");
             }
             catch (Exception ex2)
             {
@@ -80,7 +84,7 @@ try
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Database migration failed.");
+            Log.Error(ex, "Database migration failed. Exception type: {ExceptionType}", ex.GetType().Name);
         }
     }
 
