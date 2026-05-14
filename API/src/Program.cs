@@ -67,10 +67,26 @@ try
             {
                 Log.Warning("Tables missing despite migration history. Clearing __EFMigrationsHistory to force re-migration.");
                 dbContext.Database.ExecuteSqlRaw("DROP TABLE IF EXISTS \"__EFMigrationsHistory\"");
+                // Close the connection to refresh state after dropping table
+                dbContext.Database.CloseConnection();
             }
 
             dbContext.Database.Migrate();
             Log.Information("Database migration completed successfully.");
+            
+            // Verify tables exist by querying each one
+            try
+            {
+                _ = dbContext.Products.AsNoTracking().FirstOrDefault();
+                _ = dbContext.Orders.AsNoTracking().FirstOrDefault();
+                _ = dbContext.Carts.AsNoTracking().FirstOrDefault();
+                Log.Information("All critical tables verified successfully.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Table verification failed after migration: {Message}", ex.Message);
+                throw;
+            }
         }
         catch (Exception ex)
         {
