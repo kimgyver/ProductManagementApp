@@ -54,27 +54,21 @@ try
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         try
         {
-            // Delete stale migration history if tables are missing (handles DB re-provisioning)
-            var tableExists = false;
-            try
-            {
-                _ = dbContext.Products.Any();
-                tableExists = true;
-            }
-            catch { }
-
-            if (!tableExists)
-            {
-                Log.Warning("Tables missing despite migration history. Clearing __EFMigrationsHistory to force re-migration.");
-                dbContext.Database.ExecuteSqlRaw("DROP TABLE IF EXISTS \"__EFMigrationsHistory\"");
-                // Close the connection to refresh state after dropping table
-                dbContext.Database.CloseConnection();
-            }
-
-            dbContext.Database.Migrate();
-            Log.Information("Database migration completed successfully.");
+            // Use EnsureCreated instead of Migrate to avoid SQLite/PostgreSQL migration conflicts
+            // This creates the database schema based on the current DbContext snapshot
+            Log.Information("Ensuring database and tables exist...");
+            bool created = dbContext.Database.EnsureCreated();
             
-            // Verify tables exist by querying each one
+            if (created)
+            {
+                Log.Information("Database and tables created successfully.");
+            }
+            else
+            {
+                Log.Information("Database already exists. Verifying tables...");
+            }
+
+            // Verify critical tables exist by querying each one
             try
             {
                 _ = dbContext.Products.AsNoTracking().FirstOrDefault();
@@ -84,13 +78,13 @@ try
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Table verification failed after migration: {Message}", ex.Message);
+                Log.Error(ex, "Table verification failed: {Message}", ex.Message);
                 throw;
             }
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Database migration failed. Exception type: {ExceptionType}", ex.GetType().Name);
+            Log.Error(ex, "Database setup failed. Exception type: {ExceptionType}", ex.GetType().Name);
             throw;
         }
     }
