@@ -19,10 +19,12 @@ public interface IOrderRepository
 public class OrderRepository : IOrderRepository
 {
   private readonly ApplicationDbContext _context;
+  private readonly ILogger<OrderRepository> _logger;
 
-  public OrderRepository(ApplicationDbContext context)
+  public OrderRepository(ApplicationDbContext context, ILogger<OrderRepository> logger)
   {
     _context = context;
+    _logger = logger;
   }
 
   public async Task<Order?> GetByIdAsync(int id)
@@ -78,8 +80,24 @@ public class OrderRepository : IOrderRepository
   public async Task<Order> AddAsync(Order order)
   {
     _context.Orders.Add(order);
-    await _context.SaveChangesAsync();
-    return order;
+    try
+    {
+      await _context.SaveChangesAsync();
+      return order;
+    }
+    catch (Exception ex) when (IsOrderSchemaMismatch(ex))
+    {
+      _logger.LogWarning(ex, "Order schema mismatch detected while creating order. Attempting migration and retry.");
+
+      // Detach failed entity before retrying with a clean tracked instance.
+      _context.Entry(order).State = EntityState.Detached;
+
+      await EnsureOrderSchemaAsync();
+
+      _context.Orders.Add(order);
+      await _context.SaveChangesAsync();
+      return order;
+    }
   }
 
   public async Task<Order?> UpdateAsync(Order order)
@@ -117,6 +135,13 @@ public class OrderRepository : IOrderRepository
   public async Task SaveChangesAsync()
   {
     await _context.SaveChangesAsync();
+  }
+
+  private async Task EnsureOrderSchemaAsync()
+  {
+    await _context.Database.MigrateAsync();
+    _ = await _context.Orders.AnyAsync();
+    _logger.LogInformation("Order schema migration retry completed successfully.");
   }
 
   private static bool IsOrderSchemaMismatch(Exception ex)
